@@ -15,7 +15,7 @@ Se utiliza el ORM **Drizzle** para generar el schema y realizar migraciones a pa
 
 ## `users` (Usuarios)
 
-**Cada usuario** (profesor o estudiante) **pertenece a un centro.**
+**Cada usuario** (administrador, profesor o estudiante) **pertenece a un centro.**
 
 | Campo         | Tipo    | Restricciones                                    |
 | :------------ | :------ | :----------------------------------------------- |

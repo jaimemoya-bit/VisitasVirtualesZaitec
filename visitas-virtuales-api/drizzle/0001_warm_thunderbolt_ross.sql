@@ -1,0 +1,1 @@
+ALTER TABLE "centers" ADD CONSTRAINT "centers_name_unique" UNIQUE("name");
