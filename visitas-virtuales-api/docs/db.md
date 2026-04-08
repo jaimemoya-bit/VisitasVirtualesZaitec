@@ -78,7 +78,11 @@ Se utiliza el ORM **Drizzle** para generar el schema y realizar migraciones a pa
 
 ## Datos de prueba
 
-Ejecuta `npm run db:seed` para insertar datos de prueba en la base de datos.
+Ejecuta `npm run db:seed` (tras generar y aplicar las migraciones) para insertar datos de prueba en la base de datos.
+
+> El historial de migraciones se encuentra en `./drizzle`.
+
+> El schema de la base de datos se encuentra en `./src/db/schema.js`. Será necesario generar y aplicar migraciones tras editarlo.
 
 ### Usuarios de prueba
 
