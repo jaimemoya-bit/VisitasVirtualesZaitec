@@ -10,8 +10,8 @@ const Dashboard = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
-  const { centerState } = useAuth();
-  const { allCenters, selectCenter } = centerState;
+  const { centerState, saveSelectedCenter } = useAuth();
+  const { allCenters } = centerState;
   const navigate = useNavigate();
 
   // Cargar todos los POIs al montar el componente
@@ -143,7 +143,7 @@ const Dashboard = () => {
     if (!centerName || !allCenters) return;
     const center = allCenters.find((c) => c.name === centerName);
     if (center) {
-      selectCenter(center);
+      saveSelectedCenter(center);
       navigate('/home');
     }
   };
@@ -198,8 +198,8 @@ const Dashboard = () => {
 
             <button
               type="button"
-              onClick={() => poisByCenterWithPercent.length > 0 && handleCenterCardClick(poisByCenterWithPercent[0].name)}
-              disabled={poisByCenterWithPercent.length === 0}
+              onClick={() => mostActiveCenter && handleCenterCardClick(mostActiveCenter.name)}
+              disabled={!mostActiveCenter}
               className="group overflow-hidden rounded-3xl border border-slate-200 bg-gradient-to-br from-slate-50 via-white to-slate-100 p-6 shadow-sm transition hover:shadow-md hover:border-emerald-400 cursor-pointer text-left disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <div className="flex items-center justify-between gap-4">
