@@ -181,7 +181,11 @@ const Dashboard = () => {
       ) : (
         <>
           <section className="grid gap-4 lg:grid-cols-4">
-            <article className="group overflow-hidden rounded-3xl border border-slate-200 bg-gradient-to-br from-slate-50 via-white to-slate-100 p-6 shadow-sm transition hover:shadow-md">
+            <button
+              type="button"
+              onClick={() => navigate('/centerselection')}
+              className="group overflow-hidden rounded-3xl border border-slate-200 bg-gradient-to-br from-slate-50 via-white to-slate-100 p-6 shadow-sm transition hover:shadow-md hover:border-blue-400 cursor-pointer text-left"
+            >
               <div className="flex items-center justify-between gap-4">
                 <div>
                   <p className="text-sm font-semibold text-slate-500">Total de POIs</p>
@@ -190,9 +194,14 @@ const Dashboard = () => {
                 <div className="flex h-12 w-12 items-center justify-center rounded-3xl bg-blue-100 text-blue-700 text-xl">📍</div>
               </div>
               <p className="mt-4 text-sm text-slate-500">Todo el inventario de puntos de interés.</p>
-            </article>
+            </button>
 
-            <article className="group overflow-hidden rounded-3xl border border-slate-200 bg-gradient-to-br from-slate-50 via-white to-slate-100 p-6 shadow-sm transition hover:shadow-md">
+            <button
+              type="button"
+              onClick={() => poisByCenterWithPercent.length > 0 && handleCenterCardClick(poisByCenterWithPercent[0].name)}
+              disabled={poisByCenterWithPercent.length === 0}
+              className="group overflow-hidden rounded-3xl border border-slate-200 bg-gradient-to-br from-slate-50 via-white to-slate-100 p-6 shadow-sm transition hover:shadow-md hover:border-emerald-400 cursor-pointer text-left disabled:opacity-50 disabled:cursor-not-allowed"
+            >
               <div className="flex items-center justify-between gap-4">
                 <div>
                   <p className="text-sm font-semibold text-slate-500">Centros activos</p>
@@ -201,9 +210,14 @@ const Dashboard = () => {
                 <div className="flex h-12 w-12 items-center justify-center rounded-3xl bg-emerald-100 text-emerald-700 text-xl">🏢</div>
               </div>
               <p className="mt-4 text-sm text-slate-500">Centros con al menos un POI asignado.</p>
-            </article>
+            </button>
 
-            <article className="group overflow-hidden rounded-3xl border border-slate-200 bg-gradient-to-br from-slate-50 via-white to-slate-100 p-6 shadow-sm transition hover:shadow-md">
+            <button
+              type="button"
+              onClick={() => mostRecentCenterName && handleCenterCardClick(mostRecentCenterName)}
+              disabled={!mostRecentCenterName}
+              className="group overflow-hidden rounded-3xl border border-slate-200 bg-gradient-to-br from-slate-50 via-white to-slate-100 p-6 shadow-sm transition hover:shadow-md hover:border-indigo-400 cursor-pointer text-left disabled:opacity-50 disabled:cursor-not-allowed"
+            >
               <div className="flex items-center justify-between gap-4">
                 <div>
                   <p className="text-sm font-semibold text-slate-500">POIs hoy</p>
@@ -212,9 +226,14 @@ const Dashboard = () => {
                 <div className="flex h-12 w-12 items-center justify-center rounded-3xl bg-indigo-100 text-indigo-700 text-xl">🕐</div>
               </div>
               <p className="mt-4 text-sm text-slate-500">{hasPoiDates ? 'Registros con fecha de hoy' : 'Basado en últimos cambios'}</p>
-            </article>
+            </button>
 
-            <article className="group overflow-hidden rounded-3xl border border-slate-200 bg-gradient-to-br from-slate-50 via-white to-slate-100 p-6 shadow-sm transition hover:shadow-md">
+            <button
+              type="button"
+              onClick={() => mostRecentCenterName && handleCenterCardClick(mostRecentCenterName)}
+              disabled={!mostRecentCenterName}
+              className="group overflow-hidden rounded-3xl border border-slate-200 bg-gradient-to-br from-slate-50 via-white to-slate-100 p-6 shadow-sm transition hover:shadow-md hover:border-slate-400 cursor-pointer text-left disabled:opacity-50 disabled:cursor-not-allowed"
+            >
               <div className="flex items-center justify-between gap-4">
                 <div>
                   <p className="text-sm font-semibold text-slate-500">Actividad 7 días</p>
@@ -228,7 +247,7 @@ const Dashboard = () => {
                 </span>
               </div>
               <p className="mt-3 text-sm text-slate-500">{weeklyChangeCaption}</p>
-            </article>
+            </button>
           </section>
 
           <section className="grid gap-4 sm:grid-cols-2">
