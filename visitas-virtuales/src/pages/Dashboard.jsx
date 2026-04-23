@@ -305,16 +305,30 @@ const Dashboard = () => {
               <ul className="space-y-3">
                 {lastChanges.map((poi) => {
                   const centerName = getCenterName(poi.centerId) || 'Sin centro';
+                  const isClickable = centerName !== 'Sin centro';
                   return (
-                    <li key={poi.id} className="border border-slate-100 rounded-lg p-3 hover:bg-slate-50">
-                      <p className="font-semibold text-slate-800">{poi.name}</p>
-                      <p className="text-xs text-slate-500">Centro: {centerName}</p>
-                      <p className="text-sm text-slate-600 mt-1">{poi.description}</p>
+                    <li key={poi.id}>
+                      {isClickable ? (
+                        <button
+                          type="button"
+                          onClick={() => handleCenterCardClick(centerName)}
+                          className="w-full text-left border border-slate-100 rounded-lg p-3 transition hover:bg-blue-50 hover:border-blue-300 cursor-pointer"
+                        >
+                          <p className="font-semibold text-slate-800">{poi.name}</p>
+                          <p className="text-xs text-slate-500">Centro: {centerName}</p>
+                          <p className="text-sm text-slate-600 mt-1">{poi.description}</p>
+                        </button>
+                      ) : (
+                        <div className="border border-slate-100 rounded-lg p-3 bg-slate-50">
+                          <p className="font-semibold text-slate-800">{poi.name}</p>
+                          <p className="text-xs text-slate-500">Centro: {centerName}</p>
+                          <p className="text-sm text-slate-600 mt-1">{poi.description}</p>
+                        </div>
+                      )}
                     </li>
                   );
                 })}
               </ul>
-              
             )}
           </section>
 
