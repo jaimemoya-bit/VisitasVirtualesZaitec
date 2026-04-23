@@ -280,13 +280,18 @@ const Dashboard = () => {
             ) : (
               <ol className="space-y-3">
                 {topCenters.map((center, index) => (
-                  <li key={center.name} className="rounded-xl border border-slate-100 bg-slate-50 p-4">
+                  <button
+                    key={center.name}
+                    type="button"
+                    onClick={() => handleCenterCardClick(center.name)}
+                    className="w-full text-left rounded-xl border border-slate-100 bg-slate-50 p-4 transition hover:bg-blue-50 hover:border-blue-300 cursor-pointer"
+                  >
                     <div className="flex items-center justify-between">
                       <span className="text-sm font-semibold text-slate-700">#{index + 1} {center.name}</span>
                       <span className="text-sm text-slate-500">{center.percentage}%</span>
                     </div>
                     <p className="mt-2 text-sm text-slate-600">{center.value} POIs · {center.recentCount} cambios recientes</p>
-                  </li>
+                  </button>
                 ))}
               </ol>
             )}
