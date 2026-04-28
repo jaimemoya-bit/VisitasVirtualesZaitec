@@ -17,7 +17,8 @@ export default function UserProfileForm() {
       };
 
     const [userFormState, setUserFormState] = useState(userFormInitialState);
-    const [preview, setPreview] = useState(user?.imgUrl || `https://api.dicebear.com/9.x/identicon/svg?seed=${user?.email}`);
+    const [preview, setPreview] = useState(user?.imageUrl || `https://api.dicebear.com/9.x/identicon/svg?seed=${user?.email}`);
+    console.log(preview)
 
     const updateUserAction = async (formData) => {
         // Eliminar el campo de centro si no se ha seleccionado ninguno
