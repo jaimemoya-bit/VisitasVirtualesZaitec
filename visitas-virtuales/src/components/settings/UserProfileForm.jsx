@@ -11,6 +11,7 @@ export default function UserProfileForm() {
 	const { fetchProfile, user } = useAuth();
 	const { allCenters } = useCenter();
 
+
 	const userImageRef = useRef(null);
 	const userFormInitialState = {
 		username: user?.username || '',
