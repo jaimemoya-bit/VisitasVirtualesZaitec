@@ -1,0 +1,36 @@
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+node_modules
+dist
+dist-ssr
+*.local
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Secrets
+.env*
+
+# Unity WebGL build output (IGNORE ENTIRE FOLDER)
+public/Build_Unity/
+
+# Unity WebGL generated data (can exceed GitHub file size limits)
+public/Build_Unity/Build/*.data
+
+# Unity compilation videos — hosted on Google Drive
+public/Build_Unity/StreamingAssets/Videos/

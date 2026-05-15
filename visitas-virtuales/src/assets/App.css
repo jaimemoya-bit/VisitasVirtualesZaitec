@@ -1,0 +1,66 @@
+@import 'tailwindcss';
+
+@theme {
+	--font-manrope: 'Manrope', sans-serif;
+	--color-navy: #003594;
+	--color-navy-dark: #002270;
+	--color-navy-muted: color-mix(in srgb, #003594, white 92%);
+	--color-orange-muted: color-mix(in srgb, #ff5b41, white 92%);
+	--color-orange: #ff5b41;
+	--color-orange-dark: #e03d24;
+	--color-grey: #ededed;
+	--font-sans: 'Manrope', sans-serif;
+}
+
+@font-face {
+	font-family: 'Manrope';
+	src: url('./assets/fonts/Manrope/static/Manrope-ExtraLight.ttf');
+	font-weight: 200;
+	font-display: swap;
+}
+
+@font-face {
+	font-family: 'Manrope';
+	src: url('./assets/fonts/Manrope/static/Manrope-Light.ttf');
+	font-weight: 300;
+	font-display: swap;
+}
+
+@font-face {
+	font-family: 'Manrope';
+	src: url('./assets/fonts/Manrope/static/Manrope-Regular.ttf');
+	font-weight: 400;
+	font-display: swap;
+}
+
+@font-face {
+	font-family: 'Manrope';
+	src: url('./assets/fonts/Manrope/static/Manrope-Medium.ttf');
+	font-weight: 500;
+	font-display: swap;
+}
+
+@font-face {
+	font-family: 'Manrope';
+	src: url('./assets/fonts/Manrope/static/Manrope-SemiBold.ttf');
+	font-weight: 600;
+	font-display: swap;
+}
+
+@font-face {
+	font-family: 'Manrope';
+	src: url('./assets/fonts/Manrope/static/Manrope-Bold.ttf');
+	font-weight: 700;
+	font-display: swap;
+}
+
+@font-face {
+	font-family: 'Manrope';
+	src: url('./assets/fonts/Manrope/static/Manrope-ExtraBold.ttf');
+	font-weight: 800;
+	font-display: swap;
+}
+
+body {
+	font-family: var(--font-manrope);
+}

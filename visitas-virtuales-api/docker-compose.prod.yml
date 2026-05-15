@@ -1,0 +1,72 @@
+services:
+  api_service:
+    build: .
+    container_name: vv-api
+    image: visitas-virtuales-api:0.1.0
+    ports:
+      - '${APP_PORT}:${APP_PORT}'
+    restart: on-failure:5
+    environment:
+      - APP_STAGE=prod
+    env_file:
+      - .env.prod
+    depends_on:
+      - minio
+      - postgres_service
+    networks:
+      - vv-network
+    deploy:
+      resources:
+        limits:
+          memory: 400m
+    healthcheck:
+      test: ['CMD', 'curl', '-f', 'http://localhost:8000/health']
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  postgres_service:
+    image: postgres:16
+    container_name: vv-postgres
+    restart: on-failure:5
+    env_file:
+      - .env.prod
+    environment:
+      TZ: Europe/Madrid
+    volumes:
+      - pgdata-prod:/var/lib/postgresql/data
+    networks:
+      - vv-network
+    deploy:
+      resources:
+        limits:
+          memory: 300m
+
+  minio:
+    image: minio/minio
+    container_name: vv-minio
+    restart: on-failure:5
+    env_file:
+      - .env.prod
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
+      MINIO_DEFAULT_BUCKETS: bucket1
+    networks:
+      - vv-network
+    command: server /data --console-address ":9001"
+    volumes:
+      - miniodata-prod:/data
+    deploy:
+      resources:
+        limits:
+          memory: 300m
+
+networks:
+  vv-network:
+    driver: bridge
+
+volumes:
+  pgdata-prod:
+  miniodata-prod:

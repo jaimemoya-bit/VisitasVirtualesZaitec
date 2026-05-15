@@ -1,0 +1,72 @@
+[
+	{
+		"id": 1,
+		"name": "Alexis",
+		"role": "Fullstack Developer",
+		"githubUrl": "https://github.com/Alexis10050",
+		"avatarUrl": "https://unavatar.io/github/Alexis10050"
+	},
+	{
+		"id": 2,
+		"name": "Bruno",
+		"role": "Fullstack Developer",
+		"githubUrl": "https://github.com/xdlimadev",
+		"avatarUrl": "https://unavatar.io/github/xdlimadev"
+	},
+	{
+		"id": 3,
+		"name": "Flor",
+		"role": "Unity Developer",
+		"githubUrl": "https://github.com/FlorBauducco",
+		"avatarUrl": "https://unavatar.io/github/FlorBauducco"
+	},
+	{
+		"id": 4,
+		"name": "Jennifer",
+		"role": "Fullstack Developer",
+		"githubUrl": "https://github.com/Jfranciglez",
+		"avatarUrl": "https://unavatar.io/github/JFranciglez"
+	},
+	{
+		"id": 5,
+		"name": "Orlando",
+		"role": "Fullstack Developer",
+		"githubUrl": "https://github.com/orlaa24adDEV",
+		"avatarUrl": "https://unavatar.io/github/orlaa24adDEV"
+	},
+	{
+		"id": 6,
+		"name": "Pablo De Galvez",
+		"role": "Fullstack Developer",
+		"githubUrl": "https://github.com/pablodegalvez",
+		"avatarUrl": "https://unavatar.io/github/pablodegalvez"
+	},
+	{
+		"id": 7,
+		"name": "Pablo Villena",
+		"role": "Fullstack Developer",
+		"githubUrl": "https://github.com/pva0011",
+		"avatarUrl": "https://unavatar.io/github/pva0011"
+	},
+	{
+		"id": 8,
+		"name": "Jose Luis",
+		"role": "Fullstack Developer",
+		"githubUrl": "https://github.com/jga0037-cell",
+		"avatarUrl": "https://unavatar.io/github/jga0037-cell"
+	},
+	{
+		"id": 9,
+		"name": "Fermin",
+		"role": "Unity Developer",
+		"githubUrl": "https://github.com/fermiinbp03",
+		"avatarUrl": "https://unavatar.io/github/fermiinbp03"
+	},
+	{
+		"id": 10,
+		"name": "Emilio",
+		"role": "Unity Developer",
+		"githubUrl": "https://github.com/EmilioGaldeano",
+		"avatarUrl": "https://unavatar.io/github/EmilioGaldeano"
+	}
+]

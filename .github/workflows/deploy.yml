@@ -1,0 +1,32 @@
+name: Deploy Stage - Visitas Virtuales API
+
+on:
+  push:
+    branches:
+      - Web_Zaitec
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Desplegar a Stage vía SSH
+        uses: appleboy/ssh-action@v1.2.5
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            cd /opt/VisitasVirtualesZaitec/
+            
+            git fetch origin
+            git checkout Web_Zaitec
+            git pull origin Web_Zaitec
+            
+            # Desplegar API
+            cd visitas-virtuales-api
+            npm run stage:restart
+
+            # Desplegar Frontend
+            cd ../visitas-virtuales
+            npm ci
+            npm run build

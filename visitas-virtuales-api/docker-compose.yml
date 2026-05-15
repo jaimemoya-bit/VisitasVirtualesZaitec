@@ -1,0 +1,49 @@
+services:
+  postgres_service:
+    image: postgres
+    container_name: vv-postgres
+    env_file:
+      - path: .env
+        required: false
+      - path: .env.dev
+        required: false
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+      TZ: Europe/Madrid
+    ports:
+      - '5433:5432'
+    networks:
+      - vv-network
+    volumes:
+      - pgdata-dev:/var/lib/postgresql/
+
+  minio_service:
+    image: minio/minio
+    container_name: vv-minio
+    env_file:
+      - path: .env
+        required: false
+      - path: .env.dev
+        required: false
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
+      MINIO_DEFAULT_BUCKETS: bucket1
+    networks:
+      - vv-network
+    ports:
+      - '9000:9000'
+      - '9001:9001' # Consola web de MinIO
+    command: server /data --console-address ":9001"
+    volumes:
+      - miniodata-dev:/data
+
+networks:
+  vv-network:
+    driver: bridge
+
+volumes:
+  pgdata-dev:
+  miniodata-dev:

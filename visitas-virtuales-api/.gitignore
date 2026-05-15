@@ -1,0 +1,9 @@
+# Secretos
+.env*
+!.env.template
+
+# Node modules
+node_modules/
+
+# Compiled output
+dist/

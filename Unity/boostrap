@@ -1,0 +1,19 @@
+using UnityEngine;
+using UnityEngine.SceneManagement;
+
+public class SceneManagerBridge : MonoBehaviour
+{
+    // Este metodo será llamado desde JavaScript
+    public void LoadSceneFromBrowser(int sceneId)
+    {
+        // Verificamos si el ID es válido antes de cargar
+        if (sceneId >= 0 && sceneId < SceneManager.sceneCountInBuildSettings)
+        {
+            SceneManager.LoadScene(sceneId);
+        }
+        else
+        {
+            Debug.LogError($"ID de escena no válido: {sceneId}");
+        }
+    }
+}
