@@ -1,8 +1,10 @@
-import { useEffect, useRef, useState, useCallback } from 'react';
+import { useEffect, useRef, useCallback } from 'react';
 import { ESCENAS_POR_CENTRO } from '@/helpers/escenas.js';
 import { useCenter } from '../hooks/useCenter';
 import { useAuth } from '@/hooks/useAuth.js';
 import { Pencil } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { toast } from 'sonner';
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -15,6 +17,7 @@ export default function UnityViewer({ modoEdicion = false }) {
 	const { selectedCenter } = useCenter();
 	const { isAdmin, user } = useAuth();
 	const selectedCenterId = selectedCenter?.id ?? null;
+	const navigate = useNavigate();
 
 	// Calculamos sceneId directamente desde selectedCenter, sin depender de la URL
 	// Así evitamos problemas de timing cuando la URL todavía no fue actualizada
@@ -68,16 +71,40 @@ export default function UnityViewer({ modoEdicion = false }) {
 			});
 
 			if (response.ok) {
+				const data = await response.json();
 				console.log('[UnityViewer] POI creado correctamente desde Unity.');
 				// Recargar POIs en Unity para que aparezca en el visor al instante
 				unityInstanceRef.current?.SendMessage('JsonManager', 'RecargarPois');
+				// Notificar al admin con opción de ir directamente al formulario de edición
+				// La API devuelve { message, newPoi } — usamos newPoi.id para abrir el crud
+				toast.success('POI añadido correctamente', {
+					description: 'Puedes editarlo cuando quieras.',
+					action: {
+						label: 'Ir a edición',
+						onClick: () => navigate('/crud', {
+							state: {
+								id: data.newPoi.id,
+								centerId: selectedCenter?.name,
+								name: 'Nuevo POI',
+								description: '',
+								tipo: datos.tipo,
+								imagenes: [],
+								isEditing: true,
+							},
+						}),
+					},
+					duration: 6000,
+				});
 			} else {
 				console.warn('[UnityViewer] Error al crear POI:', await response.text());
+				toast.error('Error al crear el POI', {
+					description: 'Inténtalo de nuevo más tarde.',
+				});
 			}
 		} catch (error) {
 			console.error('[UnityViewer] Error procesando coords de Unity:', error);
 		}
-	}, []);
+	}, [navigate, selectedCenter]);
 
 	// Se ejecuta una sola vez cuando el componente aparece en pantalla
 	useEffect(() => {
