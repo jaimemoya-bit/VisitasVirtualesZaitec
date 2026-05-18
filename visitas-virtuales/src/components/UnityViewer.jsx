@@ -1,14 +1,19 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 import { ESCENAS_POR_CENTRO } from '@/helpers/escenas.js';
 import { useCenter } from '../hooks/useCenter';
+import { useAuth } from '@/hooks/useAuth.js';
+import { Pencil } from 'lucide-react';
+
+const API_URL = import.meta.env.VITE_API_URL;
 
 // TODO: cambiar a "true" cuando los archivos del build de Unity estén en el folder de Built_Unity
 //Ver instrucciones en public/Build_Unity/.gitkeep
 const UNITY_BUILD_LISTO = true;
 
-export default function UnityViewer() {
+export default function UnityViewer({ modoEdicion = false }) {
 	// Obtenemos el centro seleccionado del contexto global
 	const { selectedCenter } = useCenter();
+	const { isAdmin, user } = useAuth();
 	const selectedCenterId = selectedCenter?.id ?? null;
 
 	// Calculamos sceneId directamente desde selectedCenter, sin depender de la URL
@@ -38,6 +43,42 @@ export default function UnityViewer() {
 		}
 	};
 
+	// Recibe las coordenadas del nuevo POI desde Unity y lo crea en la API
+	// Unity llama a window.OnPoiCoordinatesReady con un JSON: { x, y, idCentro, userId, tipo }
+	const onPoiCoordinatesReady = useCallback(async (jsonString) => {
+		try {
+			const datos = JSON.parse(jsonString);
+
+			const details = datos.tipo === 'imagen'
+				? { description: '', posX: datos.x, posY: datos.y, tipo: 'imagen', imagenes: [] }
+				: { description: '', posX: datos.x, posY: datos.y, tipo: 'basico' };
+
+			const response = await fetch(`${API_URL}api/v1/centers/${datos.idCentro}/pois`, {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json',
+					Authorization: 'Bearer ' + localStorage.getItem('accessToken'),
+				},
+				body: JSON.stringify({
+					name: 'Nuevo POI',
+					details,
+					center_id: parseInt(datos.idCentro),
+					user_id: parseInt(datos.userId),
+				}),
+			});
+
+			if (response.ok) {
+				console.log('[UnityViewer] POI creado correctamente desde Unity.');
+				// Recargar POIs en Unity para que aparezca en el visor al instante
+				unityInstanceRef.current?.SendMessage('JsonManager', 'RecargarPois');
+			} else {
+				console.warn('[UnityViewer] Error al crear POI:', await response.text());
+			}
+		} catch (error) {
+			console.error('[UnityViewer] Error procesando coords de Unity:', error);
+		}
+	}, []);
+
 	// Se ejecuta una sola vez cuando el componente aparece en pantalla
 	useEffect(() => {
 		if (selectedCenterId === null) return;
@@ -47,6 +88,10 @@ export default function UnityViewer() {
 			console.log('Unity build no disponible aún');
 			return;
 		}
+
+		// Exponer la función JS que Unity llama cuando el admin confirma la posición de un POI
+		// Debe estar en window para que el DllImport de WebBridge.cs la encuentre
+		window.OnPoiCoordinatesReady = onPoiCoordinatesReady;
 
 		// Crear el script del loader de Unity dinámicamente
 		const script = document.createElement('script');
@@ -95,6 +140,14 @@ export default function UnityViewer() {
 								'No se especificó escena en la URL, Unity usará la escena por defecto',
 							);
 						}
+
+						// Si el admin activó el modo edición, enviamos el flag y su userId a Unity
+						// WebBridge los recibe y activa el Canvas_Admin en la escena correspondiente
+						if (modoEdicion && isAdmin) {
+							unityInstance.SendMessage('WebBridge', 'RecibirModoEdicion', 'true');
+							unityInstance.SendMessage('WebBridge', 'RecibirUserId', user?.id?.toString() ?? '');
+							console.log('[UnityViewer] Modo edición activado para usuario:', user?.id);
+						}
 					}, 1500); // 1.5 seg de espera
 				})
 
@@ -109,6 +162,9 @@ export default function UnityViewer() {
 
 		// Limpieza cuando el usuario salga de esta página, y que no quede unity en segundo plano
 		return () => {
+			// Limpiar la función global al desmontar el componente
+			delete window.OnPoiCoordinatesReady;
+
 			if (unityInstanceRef.current) {
 				unityInstanceRef.current
 					.Quit()
@@ -128,7 +184,7 @@ export default function UnityViewer() {
 				}
 			}
 		};
-	}, [sceneId, selectedCenterId]);
+	}, [sceneId, selectedCenterId, modoEdicion, onPoiCoordinatesReady]);
 
 	// Lo que se muestra en pantalla
 	return (
@@ -150,6 +206,15 @@ export default function UnityViewer() {
 						className="w-full h-full"
 						style={{ display: 'block' }}
 					/>
+
+					{/* Badge modo edición — visible solo cuando el admin tiene el modo edición activo */}
+					{modoEdicion && (
+						<div className="absolute top-3 left-3 z-10 flex items-center gap-1.5 px-3 py-1.5 bg-navy text-white text-xs font-semibold rounded-full shadow">
+							<Pencil size={12} />
+							Modo edición
+						</div>
+					)}
+
 					{/* Botón de fullscreen — esquina inferior derecha */}
 					<button
 						onClick={handleFullscreen}
