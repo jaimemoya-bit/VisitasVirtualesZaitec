@@ -11,7 +11,6 @@ export default function UserProfileForm() {
 	const { fetchProfile, user } = useAuth();
 	const { allCenters } = useCenter();
 
-
 	const userImageRef = useRef(null);
 	const userFormInitialState = {
 		username: user?.username || '',
@@ -99,7 +98,7 @@ export default function UserProfileForm() {
 						/>
 					</figure>
 					<div
-						className="absolute bottom-2 right-2 bg-blue-600 p-2 rounded-full cursor-pointer hover:bg-blue-700 transition-colors"
+						className="absolute bottom-2 right-2 bg-navy p-2 rounded-full cursor-pointer hover:bg-navy-dark transition-colors"
 						onClick={() => userImageRef.current.click()}
 					>
 						<Pencil className="w-4 h-4 text-white" />
@@ -173,11 +172,11 @@ export default function UserProfileForm() {
 				</div>
 				<div className="flex flex-col sm:flex-row w-full sm:justify-end gap-2 mt-6">
 					<Button type="button" variant="secondary" onClick={resetChanges}>
-						<RotateCcw className="w-5 h-5" />
+						<RotateCcw className="w-5 h-5" strokeWidth={2} />
 						Descartar
 					</Button>
 					<Button type="submit" variant="primary">
-						<Save className="w-5 h-5" />
+						<Save className="w-5 h-5" strokeWidth={2} />
 						Guardar cambios
 					</Button>
 				</div>

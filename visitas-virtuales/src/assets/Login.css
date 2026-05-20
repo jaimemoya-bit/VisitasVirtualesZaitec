@@ -15,7 +15,7 @@
 }
 
 .main-content a:hover {
-	color: blue;
+	color: #0048c2;
 }
 
 .main-content .form-group {
@@ -38,7 +38,7 @@
 
 .main-content .form-group input:focus {
 	outline: none;
-	border-color: #007bff;
+	border-color: #0048c2;
 }
 
 .main-content .form-group input:invalid + .error-message,
@@ -74,7 +74,7 @@
 }
 
 .main-content .password-toggle:hover {
-	color: #007bff;
+	color: #0048c2;
 }
 
 .main-content .icon {
@@ -82,30 +82,9 @@
 	height: 20px;
 }
 
-.main-content button {
-	padding: 12px 30px;
-	font-size: 16px;
-	font-weight: bold;
-	background-color: #007bff;
-	color: white;
-	border: none;
-	border-radius: 20px;
-	cursor: pointer;
-	transition: background-color 0.3s ease;
-}
-
-.main-content button:hover {
-	background-color: darkgray;
-}
-
-.main-content button:active {
-	transform: scale(0.98);
-}
-
 .main-content h2 {
 	text-align: center;
 	color: #333;
-	margin-bottom: 30px;
 }
 
 .main-content .remember-group {

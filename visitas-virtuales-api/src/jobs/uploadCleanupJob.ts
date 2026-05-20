@@ -25,11 +25,11 @@ export default function uploadCleanupJob(
 					}
 				}
 			}, ttl_ms)
-			console.log('Iniciado job de limpieza de subidas no completadas')
+			console.log('Iniciado job de limpieza de subidas');
 		},
 		stop: () => {
 			if (intervalId) clearInterval(intervalId)
-			console.log('Deteniendo job de limpieza de subidas no completadas')
+			console.log('Deteniendo job de limpieza de subidas');
 		},
 	}
 }

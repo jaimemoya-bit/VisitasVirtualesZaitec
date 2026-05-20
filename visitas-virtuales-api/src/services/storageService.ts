@@ -33,7 +33,7 @@ class MinioService {
 	async init() {
 		console.log('Inicializando MinIO blob storage...')
 		await this.ensureBucketExists()
-		console.log('MinIO inicializado y listo para usar.')
+		console.log('MinIO inicializado y listo para usar')
 	}
 
 	// Verificar que el bucket existe, si no, crearlo
@@ -42,9 +42,9 @@ class MinioService {
 		const exists = await minioClient.bucketExists(this.bucketName)
 		if (!exists) {
 			await minioClient.makeBucket(this.bucketName, 'default')
-			console.log(`Bucket "${this.bucketName}" creado exitosamente.`)
+			console.log(`Bucket "${this.bucketName}" creado exitosamente`)
 		} else {
-			console.log(`Bucket "${this.bucketName}" encontrado.`)
+			console.log(`Bucket "${this.bucketName}" encontrado`)
 		}
 	}
 

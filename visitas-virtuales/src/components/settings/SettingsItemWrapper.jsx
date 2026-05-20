@@ -1,7 +1,7 @@
 export default function SettingsItemWrapper({ title, icon, children }) {
 	return (
 		<div>
-			<div className="flex items-center gap-2 text-blue-600 mb-4 ">
+			<div className="flex items-center gap-2 text-navy mb-4 ">
 				{icon}
 				<h2 className="font-bold uppercase tracking-wider text-sm">{title}</h2>
 			</div>

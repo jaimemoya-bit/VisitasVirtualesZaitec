@@ -36,3 +36,8 @@ export const setLocalStorageUser = (user) => {
 export const removeLocalStorageUser = () => {
 	localStorage.removeItem('user');
 };
+
+export const clearAuthLocalStorage = () => {
+	removeLocalStorageAccessToken();
+	removeLocalStorageUser();
+};

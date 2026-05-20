@@ -27,9 +27,7 @@ const errorHandler = (
 	res: Response,
 	next: NextFunction,
 ) => {
-	if (env.NODE_ENV === 'development') {
-		console.error(err.stack)
-	}
+	console.error(err.stack)
 
 	// Valores de error por defecto
 	let status = 500

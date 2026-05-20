@@ -12,6 +12,10 @@ public class WebBridge : MonoBehaviour
     private bool _centroRecibido = false;
     private bool _escenaRecibida = false;
 
+    // Recibir rol de usuario desde React. Confiar en backend para validar permisos.
+    // Esto es solo para mostrar el canvas de administración en Unity.
+    public static string RolUsuario { get; private set; } = "guest";
+
     // JavaScript llama a este método primero
     public void RecibirIdCentro(string idCentro)
     {
@@ -28,6 +32,13 @@ public class WebBridge : MonoBehaviour
         _escenaRecibida = true;
         Debug.Log("[WebBridge] ID de escena recibido: " + idEscena);
         TryLoadScene();
+    }
+
+    // JavaScript llama a este método para enviar el rol del usuario
+    public void RecibirRolUsuario(string rol)
+    {
+        RolUsuario = rol;
+        Debug.Log("[WebBridge] Rol de usuario recibido: " + rol);
     }
 
     // Carga la escena solo cuando han llegado los dos IDs

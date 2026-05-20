@@ -25,8 +25,8 @@ const Historial = () => {
 		return (
 			<div className="flex h-full items-center justify-center">
 				<div className="flex flex-col items-center gap-2">
-					<div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
-					<p className="italic text-gray-500">
+					<div className="w-8 h-8 border-4 border-navy border-t-transparent rounded-full animate-spin"></div>
+					<p className="italic text-gray-500 leading-relaxed">
 						Obteniendo los últimos cambios...
 					</p>
 				</div>
@@ -36,29 +36,29 @@ const Historial = () => {
 	return (
 		<div className="p-6 h-full overflow-y-auto bg-slate-50">
 			<div className="flex flex-col mb-10 space-y-2 border-b border-slate-200 pb-6">
-				<h1 className="text-3xl font-bold text-gray-800">
+				<h1 className="text-3xl font-bold text-gray-800 tracking-tight leading-tight">
 					Historial de Auditoría
 				</h1>
 				<div className="flex items-center gap-2">
-					<p className="text-gray-500 italic">
+					<p className="text-gray-500 italic leading-relaxed">
 						Últimos cambios en el repositorio
 					</p>
-					<span className="bg-blue-100 text-blue-700 text-[10px] px-2 py-0.5 rounded-full font-bold uppercase">
+					<span className="bg-navy-100 text-navy text-[10px] px-2 py-0.5 rounded-full font-bold uppercase">
 						Live
 					</span>
 				</div>
 			</div>
 
-			<div className="relative border-l-2 border-blue-200 ml-4 md:ml-6">
+			<div className="relative border-l-2 border-navy-200 ml-4 md:ml-6">
 				{commits.map((item) => (
 					<div key={item.sha} className="mb-10 ml-6 group">
 						{/* Punto de la línea de tiempo con efecto hover */}
-						<span className="absolute flex items-center justify-center w-4 h-4 bg-white border-2 border-blue-600 rounded-full -left-2.25 group-hover:bg-blue-600 transition-colors shadow-sm cursor-pointer"></span>
+						<span className="absolute flex items-center justify-center w-4 h-4 bg-white border-2 border-navy rounded-full -left-2.25 group-hover:bg-navy transition-colors shadow-sm cursor-pointer"></span>
 
 						<div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition-all hover:-translate-y-1 cursor-pointer">
 							<div className="flex flex-wrap justify-between items-center mb-3">
 								<div className="flex items-center gap-2">
-									<span className="text-xs font-bold text-blue-600 bg-blue-50 px-2 py-1 rounded">
+									<span className="text-xs font-bold text-navy bg-navy-50 px-2 py-1 rounded">
 										{new Date(item.commit.author.date).toLocaleDateString()}
 									</span>
 									<span className="text-xs text-slate-400 font-medium">
@@ -73,7 +73,7 @@ const Historial = () => {
 								</span>
 							</div>
 
-							<h3 className="text-lg font-semibold text-slate-800 mb-4 leading-tight">
+							<h3 className="text-lg font-semibold text-slate-700 mb-4 leading-tight">
 								{item.commit.message}
 							</h3>
 
@@ -96,7 +96,7 @@ const Historial = () => {
 									href={item.html_url}
 									target="_blank"
 									rel="noreferrer"
-									className="text-xs font-bold text-blue-600 hover:text-blue-800 flex items-center gap-1"
+									className="text-xs font-bold text-navy hover:text-navy-100 flex items-center gap-1"
 								>
 									DETALLES
 									<svg
@@ -121,7 +121,7 @@ const Historial = () => {
 
 			{/* Footer de la lista */}
 			<div className="text-center py-6">
-				<p className="text-sm text-slate-400 italic">
+				<p className="text-sm text-slate-400 italic leading-relaxed">
 					Ultimos cambios del repositorio.
 				</p>
 			</div>

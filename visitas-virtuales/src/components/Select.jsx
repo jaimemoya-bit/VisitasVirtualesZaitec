@@ -11,7 +11,7 @@ export default function Select({
 		<div className="relative">
 			<select
 				name={name}
-				className="appearance-none mb-4 group flex w-full flex-row gap-2 items-center bg-white border border-slate-200 rounded-lg shadow-sm transition-all duration-200 focus-within:ring-4 focus-within:ring-blue-600/10 focus-within:border-blue-600 p-2.25"
+				className="appearance-none mb-4 group flex w-full flex-row gap-2 items-center bg-white border border-slate-200 rounded-lg shadow-sm transition-all duration-200 focus-within:ring-4 focus-within:ring-navy/10 focus-within:border-navy p-2.25"
 				defaultValue={defaultValue}
 				value={value}
 				onChange={onChange}

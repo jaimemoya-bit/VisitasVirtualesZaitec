@@ -10,7 +10,7 @@ import {
 	X,
 	Compass,
 } from 'lucide-react';
-import logo1 from '@/assets/logo1.png';
+import logo1 from '@/assets/logo1.svg';
 import SidebarItem from './SidebarItem';
 import { useWindowSize } from '@/hooks/useWindowSize.js';
 
@@ -24,14 +24,14 @@ const Sidebar = ({ isMobileMenuOpen, setIsMobileMenuOpen }) => {
 		{
 			id: 'landing',
 			name: 'Inicio',
-			icon: <Home size={22} strokeWidth={1.75} />,
+			icon: <Home size={22} strokeWidth={1.6} />,
 			path: '/',
 			adminOnly: false,
 		},
 		{
 			id: 'viewer',
 			name: 'Visita 360°',
-			icon: <Compass size={22} strokeWidth={1.75} />,
+			icon: <Compass size={22} strokeWidth={1.6} />,
 			path: '/viewer',
 			adminOnly: false,
 		},
@@ -39,7 +39,7 @@ const Sidebar = ({ isMobileMenuOpen, setIsMobileMenuOpen }) => {
 			? {
 					id: 'gestion-pois',
 					name: 'Gestión de POIs',
-					icon: <MapPin size={22} strokeWidth={1.75} />,
+					icon: <MapPin size={22} strokeWidth={1.6} />,
 					path: 'listpois',
 					extraActivePaths: ['/crud'], // Para marcar activo también en /crud
 					adminOnly: false,
@@ -49,14 +49,14 @@ const Sidebar = ({ isMobileMenuOpen, setIsMobileMenuOpen }) => {
 		{
 			id: 'dashboard',
 			name: 'Dashboard',
-			icon: <LayoutDashboard size={22} strokeWidth={1.75} />,
+			icon: <LayoutDashboard size={22} strokeWidth={1.6} />,
 			path: '/dashboard',
 			adminOnly: true,
 		},
 		{
 			id: 'auditoria',
 			name: 'Auditoría',
-			icon: <ClipboardCheck size={22} strokeWidth={1.75} />,
+			icon: <ClipboardCheck size={22} strokeWidth={1.6} />,
 			path: '/historial',
 			adminOnly: true,
 		},
@@ -67,7 +67,7 @@ const Sidebar = ({ isMobileMenuOpen, setIsMobileMenuOpen }) => {
 		? allMenuItems.splice(2, 0, {
 				id: 'seleccion-centro',
 				name: 'Selección de Centro',
-				icon: <Building2 size={22} strokeWidth={1.75} />,
+				icon: <Building2 size={22} strokeWidth={1.6} />,
 				path: '/centros',
 			})
 		: null;
@@ -82,21 +82,21 @@ const Sidebar = ({ isMobileMenuOpen, setIsMobileMenuOpen }) => {
 			{/* OVERLAY: Capa oscura móvil */}
 			{isMobileMenuOpen && (
 				<div
-					className="fixed inset-0 bg-black/50 z-40 lg:hidden transition-opacity"
+					className="fixed inset-0 bg-black/50 z-50 lg:hidden transition-opacity"
 					onClick={() => setIsMobileMenuOpen(false)}
 				/>
 			)}
 
 			{/* SIDEBAR PRINCIPAL */}
 			<aside
-				className={`fixed inset-y-0 ${isExpanded ? 'min-w-[256px]' : ''} left-0 z-50 flex h-screen flex-col bg-blue-600 text-white shadow-lg transition-all duration-300 lg:relative
+				className={`fixed inset-y-0 ${isExpanded ? 'min-w-[256px]' : ''} left-0 z-50 flex h-screen flex-col bg-navy text-white shadow-lg transition-all duration-300 lg:relative
                     ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
                     ${isExpanded ? 'w-64' : 'lg:w-20'}`}
 			>
 				{/* Cabecera */}
-				<div className="flex flex-col items-center gap-2 border-b border-blue-500 p-6 relative">
+				<div className="flex flex-col items-center gap-2 border-b border-white/20 p-6 relative">
 					<button
-						className="absolute top-4 right-4 lg:hidden p-1 hover:bg-blue-700 rounded"
+						className="absolute top-4 right-4 lg:hidden p-1 hover:bg-navy-dark rounded"
 						onClick={() => setIsMobileMenuOpen(false)}
 					>
 						<X size={20} />
@@ -127,14 +127,14 @@ const Sidebar = ({ isMobileMenuOpen, setIsMobileMenuOpen }) => {
 					))}
 				</nav>
 				{/* Pie: Botón colapsar */}
-				<div className="hidden lg:block border-t border-blue-500 p-4">
+				<div className="hidden lg:block border-t border-white/20 p-4">
 					<div className="flex items-center justify-center">
 						<button
 							onClick={() => setIsExpanded(!isExpanded)}
-							className="hover:bg-blue-700 p-2 rounded-full cursor-pointer transition-colors"
+							className="hover:bg-navy-dark p-2 rounded-full cursor-pointer transition-colors"
 							title="Expandir/Contraer"
 						>
-							<Menu size={24} strokeWidth={1.75} />
+							<Menu size={24} strokeWidth={1.6} />
 						</button>
 					</div>
 				</div>

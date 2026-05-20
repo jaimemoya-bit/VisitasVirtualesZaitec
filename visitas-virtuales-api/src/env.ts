@@ -28,7 +28,10 @@ const envSchema = z.object({
 	NODE_ENV: z.enum(['development', 'test', 'production']),
 	APP_STAGE: z.enum(['dev', 'stage', 'prod']).default('dev'),
 	APP_PORT: z.coerce.number().default(8000),
+	API_BASE_URL: z.string().startsWith('http'),
 	API_VERSION: z.string().regex(new RegExp('^v\\d+$')).default('v1'),
+	ADMIN_EMAIL: z.email().min(1),
+	ADMIN_PASSWORD: z.string().min(26).max(128),
 	RATE_LIMIT_WINDOW: rateLimitWindowSchema('5m'),
 	AUTH_RATE_LIMIT_WINDOW: rateLimitWindowSchema('15m'),
 	RATE_LIMIT_MAX: z.coerce.number().default(100),
@@ -43,7 +46,11 @@ const envSchema = z.object({
 	JWT_REFRESH_TOKEN_TTL: z.string().default('7d'),
 	JWT_ISSUER: z.string().min(1),
 	JWT_AUDIENCE: z.string().min(1),
-	FRONTEND_URL: z.string().startsWith('http'),
+	FRONTEND_URLS: z
+		.string()
+		.min(1)
+		.transform((val) => val.split(',').map((url) => url.trim()))
+		.pipe(z.array(z.string().startsWith('http'))),
 	MINIO_ROOT_USER: z.string().min(1),
 	MINIO_ROOT_PASSWORD: z.string().min(32),
 	MINIO_ENDPOINT: z.string().min(1),

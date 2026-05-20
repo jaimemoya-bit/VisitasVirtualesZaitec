@@ -8,8 +8,8 @@ import {
 	removeLocalStorageAllCenters,
 	removeLocalStorageSelectedCenter,
 } from '../helpers/centerLocalStorage.js';
-import fetchWithTimeout from '../helpers/fetchWithTimeout.js';
 import { CenterContext } from './CenterContext';
+import { useAuth } from '../hooks/useAuth.js';
 
 export const CenterProvider = ({ children }) => {
 	// Carga inicial de centros desde localStorage al montar el proveedor, para evitar parpadeos y llamadas innecesarias
@@ -34,25 +34,26 @@ export const CenterProvider = ({ children }) => {
 	const [centerState, setCenterState] = useState(getInitialCenters);
 	const CHECK_INTERVAL = 5 * 60 * 1000;
 	const lastCheckRef = useRef(Date.now());
+	const hasFetchedRef = useRef(false);
+
+	const { logout } = useAuth();
 
 	/* ============================ */
 	/* ==== Gestión de centros ==== */
 	/* ============================ */
 
 	// Carga la lista de centros, renovando tokens si es necesario
-	const fetchCenters = useCallback(async (providedToken = null) => {
+	const fetchCenters = useCallback(async () => {
 		setCenterState((prev) => ({
 			...prev,
 			isCentersLoading: true,
 			centersError: null,
 		}));
 		try {
-			const token = providedToken;
-			const response = await fetchWithTimeout(
-				'/api/centers',
-				{ headers: { Authorization: `Bearer ${token}` } },
-				5000,
-			);
+			const response = await fetch('/api/centers', {
+				method: 'GET',
+				headers: { 'Content-Type': 'application/json' },
+			});
 
 			if (!response.ok) throw new Error('Error al cargar centros');
 
@@ -73,7 +74,7 @@ export const CenterProvider = ({ children }) => {
 		} finally {
 			setCenterState((prev) => ({ ...prev, isCentersLoading: false }));
 		}
-	}, []);
+	}, [logout]);
 
 	// Actualizar la imagen de un centro específico en estado local después de subirla
 	const updateCenterImage = useCallback((centerId, imageUrl) => {
@@ -108,9 +109,12 @@ export const CenterProvider = ({ children }) => {
 
 	// Cargar centros al montar el proveedor y cada 5 minutos
 	useEffect(() => {
-		const now = Date.now();
-		if (now - lastCheckRef.current > CHECK_INTERVAL) {
-			fetchCenters();
+		if (!hasFetchedRef.current) {
+			hasFetchedRef.current = true;
+			const now = Date.now();
+			if (now - lastCheckRef.current > CHECK_INTERVAL) {
+				fetchCenters();
+			}
 		}
 	}, [CHECK_INTERVAL, fetchCenters]);
 

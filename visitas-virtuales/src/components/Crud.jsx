@@ -25,6 +25,7 @@ function Crud() {
 	const [imagenesLocales, setImagenesLocales] = useState([]); // URLs ya subidas a MinIO
 
 	const location = useLocation();
+	// eslint-disable-next-line react-hooks/exhaustive-deps
 	const state = location.state || {};
 	const isEditing = !!state.isEditing;
 

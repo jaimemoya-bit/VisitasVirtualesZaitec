@@ -1,0 +1,13 @@
+name: Deploy Prod - Coolify
+on:
+  push:
+    branches: [Web_Zaitec]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Desplegar a Prod vía Coolify Webhook
+        run: |
+          curl -X GET "${{ secrets.COOLIFY_WEBHOOK_URL }}" \
+          -H "Authorization: Bearer ${{ secrets.COOLIFY_TOKEN }}"

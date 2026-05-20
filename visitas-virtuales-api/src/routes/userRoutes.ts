@@ -324,7 +324,7 @@ router.post(
  *                 message:
  *                   type: string
  */
-router.post('/users/auth/logout', hasRole(['admin', 'teacher']), logoutHandler)
+router.post('/users/auth/logout', logoutHandler)
 
 /**
  * @openapi
@@ -457,7 +457,6 @@ router.patch(
 router.post(
 	'/users/auth/refresh',
 	authLimiter,
-	hasRole(['admin', 'teacher']),
 	refreshTokenHandler,
 )
 

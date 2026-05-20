@@ -1,8 +1,16 @@
 import { Router } from 'express'
 import hasRole from '../middlewares/hasRole.ts'
-import { getAllCentersHandler, updateCenterHandler, updateCenterImageHandler } from '../controllers/centerController.ts'
+import {
+	getAllCentersHandler,
+	updateCenterHandler,
+	updateCenterImageHandler,
+} from '../controllers/centerController.ts'
 import { validateRequest } from '../middlewares/validation.ts'
-import { centerImageUpdateSchema, centerUpdateSchema } from '../db/schema.ts'
+import {
+	allCenterSchema,
+	centerImageUpdateSchema,
+	centerUpdateSchema,
+} from '../db/schema.ts'
 import multer from 'multer'
 
 export const router = Router()
@@ -19,11 +27,24 @@ const upload = multer({
  * @openapi
  * /api/v1/centers:
  *   get:
- *     summary: Obtener listado de todos los centros disponibles
- *     description: Esta ruta permite a los usuarios obtener una lista de todos los centros disponibles en el sistema
+ *     summary: Obtener listado de todos los centros disponibles con paginación opcional
+ *     description: Esta ruta permite a los usuarios obtener una lista de los centros disponibles en el sistema
  *     tags: [Centros]
  *     security:
  *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           example: 10
+ *         description: Número máximo de centros a devolver (opcional, por defecto 10)
+ *       - in: query
+ *         name: lastId
+ *         schema:
+ *           type: integer
+ *           example: 20
+ *         description: ID del último centro recibido en la página anterior para paginación (opcional)
  *     responses:
  *       200:
  *         description: Centros obtenidos exitosamente
@@ -59,7 +80,7 @@ const upload = multer({
  */
 router.get(
 	'/centers',
-	hasRole(['admin', 'teacher', 'guest']),
+	validateRequest({ query: allCenterSchema.shape.query }),
 	getAllCentersHandler,
 )
 
@@ -139,7 +160,15 @@ router.get(
  *       404:
  *         description: Centro no encontrado
  */
-router.patch('/centers/:id', hasRole(['admin']), validateRequest({params: centerUpdateSchema.shape.params, body: centerUpdateSchema.shape.body}), updateCenterHandler)
+router.patch(
+	'/centers/:id',
+	hasRole(['admin']),
+	validateRequest({
+		params: centerUpdateSchema.shape.params,
+		body: centerUpdateSchema.shape.body,
+	}),
+	updateCenterHandler,
+)
 
 /**
  * @openapi
@@ -207,6 +236,12 @@ router.patch('/centers/:id', hasRole(['admin']), validateRequest({params: center
  *       404:
  *         description: Centro no encontrado
  */
-router.post('/centers/:id/image', hasRole(['admin']), validateRequest({params: centerImageUpdateSchema.shape.params}), upload.single('file'), updateCenterImageHandler)
+router.post(
+	'/centers/:id/image',
+	hasRole(['admin']),
+	validateRequest({ params: centerImageUpdateSchema.shape.params }),
+	upload.single('file'),
+	updateCenterImageHandler,
+)
 
 export default router

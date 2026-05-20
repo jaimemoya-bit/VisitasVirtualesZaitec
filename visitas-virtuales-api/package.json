@@ -1,6 +1,6 @@
 {
-	"name": "visitasvirtualeszaitec",
-	"version": "1.0.0",
+	"name": "visitas-virtuales-api",
+	"version": "0.1.0",
 	"description": "",
 	"main": "index.js",
 	"scripts": {
@@ -26,6 +26,7 @@
 		"stage:restart": "npm run stage:down && npm run stage:up",
 		"stage:logs": "docker compose -f docker-compose.stage.yml --env-file .env.stage logs -f api_service",
 		"stage:ps": "docker compose -f docker-compose.stage.yml --env-file .env.stage ps",
+		"prod:db:seed": "node --import ./dist/env.js dist/db/seedProd.js",
 		"build": "tsc",
 		"openapi:generate": "node scripts/generate-openapi.js",
 		"format": "prettier --write ."

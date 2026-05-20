@@ -5,9 +5,9 @@ import Sidebar from './components/Sidebar';
 import Login from './components/Login';
 import Crud from './components/Crud';
 import Dashboard from './pages/Dashboard.jsx';
-import Historial from './pages/Historial.jsx';
 import CenterSelectionPage from './pages/CenterSelectionPage.jsx';
 import ListPois from './pages/ListPois.jsx';
+import NewHistorial from './pages/NewHistorial.jsx';
 import { useAuth } from '@/hooks/useAuth.js';
 import Viewer from './pages/Viewer.jsx';
 import { ProtectedRoute } from './components/ProtectedRoute.jsx';
@@ -125,7 +125,7 @@ function App() {
 							path="/historial"
 							element={
 								<ProtectedRoute requiredRoles={['admin']}>
-									<Historial />
+									<NewHistorial />
 								</ProtectedRoute>
 							}
 						/>

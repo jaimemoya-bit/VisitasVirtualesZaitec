@@ -33,25 +33,24 @@ Este proyecto es el frontend de una aplicación de visitas virtuales educativas 
 
 ### Frameworks y Librerías Principales
 
-| Tecnología | Versión | Descripción |
-|------------|---------|-------------|
-| React | 19.2.4 | Librería principal para la construcción de la interfaz de usuario |
-| React Router DOM | 7.13.2 | Enrutamiento de la aplicación |
-| Vite | 8.0.1 | Herramienta de construcción y desarrollo rápido |
-| Tailwind CSS | 4.2.2 | Framework de estilos CSS |
-| React Unity WebGL | 10.1.6 | Integración de Unity WebGL en React |
-| Recharts | 3.8.1 | Librería para gráficos |
-| Sonner | 2.0.7 | Sistema de notificaciones toast |
-| Lucide React | 1.6.0 | Iconos |
-| Heroicons React | 2.2.0 | Iconos adicionales |
+| Tecnología        | Versión | Descripción                                                       |
+| ----------------- | ------- | ----------------------------------------------------------------- |
+| React             | 19.2.4  | Librería principal para la construcción de la interfaz de usuario |
+| React Router DOM  | 7.13.2  | Enrutamiento de la aplicación                                     |
+| Vite              | 8.0.1   | Herramienta de construcción y desarrollo rápido                   |
+| Tailwind CSS      | 4.2.2   | Framework de estilos CSS                                          |
+| React Unity WebGL | 10.1.6  | Integración de Unity WebGL en React                               |
+| Recharts          | 3.8.1   | Librería para gráficos                                            |
+| Sonner            | 2.0.7   | Sistema de notificaciones toast                                   |
+| Lucide React      | 1.6.0   | Iconos                                                            |
 
 ### Herramientas de Desarrollo
 
-| Tecnología | Versión | Descripción |
-|------------|---------|-------------|
-| ESLint | 9.0.0 | Linter para JavaScript/JSX |
-| Prettier | 3.8.3 | Formateador de código |
-| PostCSS | - | Procesador de CSS |
+| Tecnología | Versión | Descripción                |
+| ---------- | ------- | -------------------------- |
+| ESLint     | 9.0.0   | Linter para JavaScript/JSX |
+| Prettier   | 3.8.3   | Formateador de código      |
+| PostCSS    | -       | Procesador de CSS          |
 
 ---
 
@@ -283,18 +282,18 @@ main.jsx
 
 La aplicación define las siguientes rutas en `App.jsx`:
 
-| Ruta | Componente | Acceso | Descripción |
-|------|------------|--------|-------------|
-| `/` | LandingPage | Público | Página de inicio con información del proyecto |
-| `/login` | Login | Público | Formulario de inicio de sesión |
-| `/centros` | CenterSelectionPage | Público | Lista de centros disponibles |
-| `/viewer` | Viewer | Público/Auth | Visor del tour virtual 360° |
-| `/listpois` | ListPois | Admin/Teacher | Lista de puntos de interés |
-| `/crud` | Crud | Admin/Teacher | Gestión de POIs (crear, editar, eliminar) |
-| `/dashboard` | Dashboard | Solo Admin | Panel de estadísticas y métricas |
-| `/settings` | Settings | Admin/Teacher | Configuración de usuario y centro |
-| `/historial` | Historial | Solo Admin | Historial de visitas de usuarios |
-| `*` | - | Todas | Redirección a `/` |
+| Ruta         | Componente          | Acceso        | Descripción                                   |
+| ------------ | ------------------- | ------------- | --------------------------------------------- |
+| `/`          | LandingPage         | Público       | Página de inicio con información del proyecto |
+| `/login`     | Login               | Público       | Formulario de inicio de sesión                |
+| `/centros`   | CenterSelectionPage | Público       | Lista de centros disponibles                  |
+| `/viewer`    | Viewer              | Público/Auth  | Visor del tour virtual 360°                   |
+| `/listpois`  | ListPois            | Admin/Teacher | Lista de puntos de interés                    |
+| `/crud`      | Crud                | Admin/Teacher | Gestión de POIs (crear, editar, eliminar)     |
+| `/dashboard` | Dashboard           | Solo Admin    | Panel de estadísticas y métricas              |
+| `/settings`  | Settings            | Admin/Teacher | Configuración de usuario y centro             |
+| `/historial` | Historial           | Solo Admin    | Historial de visitas de usuarios              |
+| `*`          | -                   | Todas         | Redirección a `/`                             |
 
 ### Protección de Rutas
 
@@ -311,6 +310,7 @@ Algunas rutas están protegidas mediante el componente `ProtectedRoute`:
 ### Componentes de Layout
 
 #### TopHeader.jsx
+
 - **Ubicación**: `src/components/TopHeader.jsx`
 - **Descripción**: Encabezado superior de la aplicación
 - **Props**:
@@ -320,6 +320,7 @@ Algunas rutas están protegidas mediante el componente `ProtectedRoute`:
   - `userName`, `userEmail`, `userImg`, `role`: Datos del usuario
 
 #### Sidebar.jsx
+
 - **Ubicación**: `src/components/Sidebar.jsx`
 - **Descripción**: Barra lateral de navegación
 - **Props**:
@@ -327,6 +328,7 @@ Algunas rutas están protegidas mediante el componente `ProtectedRoute`:
   - `setIsMobileMenuOpen`: Función para controlar el menú
 
 #### ProtectedRoute.jsx
+
 - **Ubicación**: `src/components/ProtectedRoute.jsx`
 - **Descripción**: Componente para proteger rutas según el rol del usuario
 - **Props**:
@@ -335,6 +337,7 @@ Algunas rutas están protegidas mediante el componente `ProtectedRoute`:
 ### Componentes de Formulario
 
 #### Login.jsx
+
 - **Ubicación**: `src/components/Login.jsx`
 - **Descripción**: Formulario de inicio de sesión
 - **Funcionalidad**:
@@ -343,6 +346,7 @@ Algunas rutas están protegidas mediante el componente `ProtectedRoute`:
   - Redirección según el rol del usuario
 
 #### Input.jsx
+
 - **Ubicación**: `src/components/Input.jsx`
 - **Descripción**: Campo de entrada reutilizable
 - **Props**:
@@ -351,6 +355,7 @@ Algunas rutas están protegidas mediante el componente `ProtectedRoute`:
   - `placeholder`, `label`, `error`: Personalización
 
 #### Button.jsx
+
 - **Ubicación**: `src/components/Button.jsx`
 - **Descripción**: Botón reutilizable
 - **Props**:
@@ -361,6 +366,7 @@ Algunas rutas están protegidas mediante el componente `ProtectedRoute`:
 ### Componentes Especiales
 
 #### UnityViewer.jsx
+
 - **Ubicación**: `src/components/UnityViewer.jsx`
 - **Descripción**: Componente para mostrar el tour virtual de Unity WebGL
 - **Funcionalidad**:
@@ -369,6 +375,7 @@ Algunas rutas están protegidas mediante el componente `ProtectedRoute`:
   - Integración de puntos de información (POIs)
 
 #### Crud.jsx
+
 - **Ubicación**: `src/components/Crud.jsx`
 - **Descripción**: Componente de gestión CRUD para POIs
 - **Funcionalidad**:
@@ -382,6 +389,7 @@ Algunas rutas están protegidas mediante el componente `ProtectedRoute`:
 ## 9. Páginas
 
 ### LandingPage.jsx
+
 - **Ubicación**: `src/pages/LandingPage.jsx`
 - **Descripción**: Página de inicio pública
 - **Contenido**:
@@ -392,6 +400,7 @@ Algunas rutas están protegidas mediante el componente `ProtectedRoute`:
 - **Acceso**: Público (sin autenticación)
 
 ### Login.jsx
+
 - **Ubicación**: `src/components/Login.jsx` ( también en pages )
 - **Descripción**: Página de autenticación
 - **Funcionalidad**:
@@ -401,6 +410,7 @@ Algunas rutas están protegidas mediante el componente `ProtectedRoute`:
   - Redirección tras login exitoso
 
 ### CenterSelectionPage.jsx
+
 - **Ubicación**: `src/pages/CenterSelectionPage.jsx`
 - **Descripción**: Página para seleccionar un centro educativo
 - **Funcionalidad**:
@@ -410,6 +420,7 @@ Algunas rutas están protegidas mediante el componente `ProtectedRoute`:
 - **Acceso**: Público
 
 ### Viewer.jsx
+
 - **Ubicación**: `src/pages/Viewer.jsx`
 - **Descripción**: Visor del tour virtual 360°
 - **Funcionalidad**:
@@ -420,6 +431,7 @@ Algunas rutas están protegidas mediante el componente `ProtectedRoute`:
 - **Acceso**: Público (requiere tener un centro seleccionado)
 
 ### Dashboard.jsx
+
 - **Ubicación**: `src/pages/Dashboard.jsx`
 - **Descripción**: Panel de administración y estadísticas
 - **Funcionalidad**:
@@ -429,6 +441,7 @@ Algunas rutas están protegidas mediante el componente `ProtectedRoute`:
 - **Acceso**: Solo admin
 
 ### ListPois.jsx
+
 - **Ubicación**: `src/pages/ListPois.jsx`
 - **Descripción**: Lista de puntos de interés (POIs)
 - **Funcionalidad**:
@@ -439,6 +452,7 @@ Algunas rutas están protegidas mediante el componente `ProtectedRoute`:
 - **Props**: `centerId` - ID del centro seleccionado
 
 ### Settings.jsx
+
 - **Ubicación**: `src/pages/Settings.jsx`
 - **Descripción**: Página de configuración
 - **Funcionalidad**:
@@ -448,6 +462,7 @@ Algunas rutas están protegidas mediante el componente `ProtectedRoute`:
 - **Acceso**: Admin y Teacher
 
 ### Historial.jsx
+
 - **Ubicación**: `src/pages/Historial.jsx`
 - **Descripción**: Historial de visitas de usuarios
 - **Funcionalidad**:
@@ -465,6 +480,7 @@ Algunas rutas están protegidas mediante el componente `ProtectedRoute`:
 **Ubicación**: `src/context/AuthContext.js` y `src/context/AuthProvider.jsx`
 
 **Funcionalidad**:
+
 - Gestión del estado de autenticación
 - almacenamiento del token de acceso
 - Renovación automática de tokens
@@ -472,6 +488,7 @@ Algunas rutas están protegidas mediante el componente `ProtectedRoute`:
 - Control de acceso según roles
 
 **Estado proporcionado**:
+
 ```javascript
 {
   user: Object,        // Perfil del usuario
@@ -489,12 +506,14 @@ Algunas rutas están protegidas mediante el componente `ProtectedRoute`:
 **Ubicación**: `src/context/CenterContext.js` y `src/context/CenterProvider.jsx`
 
 **Funcionalidad**:
+
 - Gestión de la lista de centros
 - Selección del centro activo
 - Sincronización con localStorage
 - Actualización de imágenes de centros
 
 **Estado proporcionado**:
+
 ```javascript
 {
   allCenters: Array,      // Lista de todos los centros
@@ -513,16 +532,19 @@ Algunas rutas están protegidas mediante el componente `ProtectedRoute`:
 ## 11. Custom Hooks
 
 ### useAuth.js
+
 - **Ubicación**: `src/hooks/useAuth.js`
 - **Descripción**: Hook para acceder al contexto de autenticación
 - **Retorna**: El valor del AuthContext
 
 ### useCenter.js
+
 - **Ubicación**: `src/hooks/useCenter.js`
 - **Descripción**: Hook para acceder al contexto de centros
 - **Retorna**: El valor del CenterContext
 
 ### useCenterQuery.js
+
 - **Ubicación**: `src/hooks/useCenterQuery.js`
 - **Descripción**: Hook para realizar consultas personalizadas de centros
 - **Funcionalidad**:
@@ -531,6 +553,7 @@ Algunas rutas están protegidas mediante el componente `ProtectedRoute`:
   - Obtención de centros por ID
 
 ### useWindowSize.js
+
 - **Ubicación**: `src/hooks/useWindowSize.js`
 - **Descripción**: Hook para obtener el tamaño de la ventana
 - **Retorna**: `{ width, height }`
@@ -540,6 +563,7 @@ Algunas rutas están protegidas mediante el componente `ProtectedRoute`:
 ## 12. Helpers y Utilidades
 
 ### authLocalStorage.js
+
 - **Ubicación**: `src/helpers/authLocalStorage.js`
 - **Funciones**:
   - `setLocalStorageAccessToken(token)`: Guardar token
@@ -551,6 +575,7 @@ Algunas rutas están protegidas mediante el componente `ProtectedRoute`:
   - `removeLocalStorageUser()`: Eliminar usuario
 
 ### centerLocalStorage.js
+
 - **Ubicación**: `src/helpers/centerLocalStorage.js`
 - **Funciones**:
   - `getLocalStorageAllCenters()`: Obtener todos los centros
@@ -560,14 +585,17 @@ Algunas rutas están protegidas mediante el componente `ProtectedRoute`:
   - `removeLocalStorageAllCenters()` / `removeLocalStorageSelectedCenter()`: Eliminar
 
 ### fetchWithAuth.js
+
 - **Ubicación**: `src/helpers/fetchWithAuth.js`
 - **Descripción**: Wrapper para fetch que incluye el token de autenticación
 
 ### fetchWithTimeout.js
+
 - **Ubicación**: `src/helpers/fetchWithTimeout.js`
 - **Descripción**: Wrapper para fetch con timeout configurable
 
 ### escenas.js
+
 - **Ubicación**: `src/helpers/escenas.js`
 - **Descripción**: Configuración de las escenas del tour virtual
 
@@ -576,10 +604,12 @@ Algunas rutas están protegidas mediante el componente `ProtectedRoute`:
 ## 13. Estilos
 
 ### Estilos Globales
+
 - **App.css**: Estilos globales de la aplicación
 - **Login.css**: Estilos específicos del componente de login
 
 ### Tailwind CSS
+
 La aplicación utiliza Tailwind CSS para los estilos. La configuración está en:
 
 - `tailwind.config.js`: Configuración principal
@@ -588,6 +618,7 @@ La aplicación utiliza Tailwind CSS para los estilos. La configuración está en
 ### Clases de Tailwind Utilizadas
 
 El proyecto utiliza clases de Tailwind como:
+
 - Layout: `flex`, `grid`, `w-full`, `h-screen`, `min-h-screen`
 - Espaciado: `p-4`, `m-4`, `gap-4`, `mt-4`, `mb-4`
 - Colores: `bg-white`, `text-gray-800`, `border-gray-300`
@@ -600,18 +631,19 @@ El proyecto utiliza clases de Tailwind como:
 
 La aplicación se comunica con el backend mediante fetch. Los endpoints típicos son:
 
-| Endpoint | Método | Descripción |
-|----------|--------|-------------|
-| `/api/users/auth/refresh` | POST | Renovar token de acceso |
-| `/api/me` | GET | Obtener perfil del usuario |
-| `/api/centers` | GET | Obtener lista de centros |
-| `/api/users/auth/logout` | POST | Cerrar sesión |
+| Endpoint                  | Método | Descripción                |
+| ------------------------- | ------ | -------------------------- |
+| `/api/users/auth/refresh` | POST   | Renovar token de acceso    |
+| `/api/me`                 | GET    | Obtener perfil del usuario |
+| `/api/centers`            | GET    | Obtener lista de centros   |
+| `/api/users/auth/logout`  | POST   | Cerrar sesión              |
 
 **Nota**: Los endpoints específicos pueden variar según la configuración del backend. Consulta la documentación del API para más detalles.
 
 ### Manejo de Errores
 
 La aplicación maneja errores mediante:
+
 - Try/catch en funciones asíncronas
 - Notificaciones toast con Sonner
 - Estados de error en los contextos
@@ -694,4 +726,4 @@ El proyecto fue desarrollado por un equipo de estudiantes de formación profesio
 
 ---
 
-*Documentación generada para el proyecto Visitas Virtuales Zaitec - Frontend*
+_Documentación generada para el proyecto Visitas Virtuales Zaitec - Frontend_

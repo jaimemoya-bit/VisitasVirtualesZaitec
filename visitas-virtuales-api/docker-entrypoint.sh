@@ -10,14 +10,12 @@ if [ "$APP_STAGE" = "stage" ]; then
   echo "App ejecutándose en modo stage."
   echo "Recreando la base de datos de staging e introduciendo datos de prueba..."
 
-  # Check connection
   PGPASSWORD="$POSTGRES_PASSWORD" psql -h postgres_service -U "$POSTGRES_USER" -d postgres -c "SELECT 1" > /dev/null 2>&1
   if [ $? -ne 0 ]; then
     echo "Error de conexión a PostgreSQL. Comprueba que la base de datos y credenciales sean correctas."
     exit 1
   fi
 
-  # Drop and recreate DB
   PGPASSWORD="$POSTGRES_PASSWORD" psql -h postgres_service -U "$POSTGRES_USER" -d postgres -c "DROP DATABASE IF EXISTS $POSTGRES_DB;"
   if [ $? -ne 0 ]; then
     echo "Error al eliminar la base de datos."
@@ -38,10 +36,17 @@ if [ "$APP_STAGE" = "stage" ]; then
   fi
 
   echo "Migraciones ejecutadas y datos de prueba insertados correctamente."
+elif [ "$APP_STAGE" = "prod" ]; then
+  echo "App ejecutándose en modo prod."
+  npm run db:migrate && npm run prod:db:seed
+  if [ $? -ne 0 ]; then
+    echo "Error al ejecutar migraciones o seed de producción."
+    exit 1
+  fi
+  echo "Migraciones y seed de producción ejecutados correctamente."
 else
   npm run db:migrate
 fi
-
 
 echo "Iniciando la aplicación con PM2..."
 pm2-runtime start ecosystem.config.cjs

@@ -31,11 +31,11 @@ export default function UserDropdown() {
 					className="group flex items-center gap-4 focus:outline-none cursor-pointer"
 				>
 					<div className="flex flex-col items-end leading-tight">
-						<h2 className="text-sm font-bold text-slate-800">{username}</h2>
+						<h2 className="text-sm font-bold text-slate-700">{username}</h2>
 						<span
-							className={`px-1.75 py-0.75 rounded text-[11px] font-semibold uppercase ${
+							className={`px-1.75 py-0.75 rounded text-[11px] font-semibold ${
 								role === 'admin'
-									? 'bg-blue-100/50 text-blue-600'
+									? 'bg-navy-muted text-navy'
 									: role === 'teacher'
 										? 'bg-amber-50 text-amber-700'
 										: 'bg-transparent text-zinc-400 border-zinc-200'
@@ -57,7 +57,7 @@ export default function UserDropdown() {
 									`https://api.dicebear.com/9.x/identicon/svg?seed=${email}`
 								}
 								alt="Imagen de perfil"
-								className="w-10 h-10 rounded-full object-cover border-2 border-slate-50 group-hover:border-blue-200 transition-all"
+								className="w-10 h-10 rounded-full object-cover border-2 border-slate-50 group-hover:border-navy-200 transition-all"
 							/>
 							<div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-white rounded-full"></div>
 						</div>
@@ -78,7 +78,7 @@ export default function UserDropdown() {
 						</div>
 						{role === 'admin' || role === 'teacher' ? (
 							<DropdownItem onClick={() => handleMenuItemClick('/settings')}>
-								<Settings size={16} />
+								<Settings size={16} strokeWidth={2.25} />
 								Configuración
 							</DropdownItem>
 						) : null}
@@ -86,7 +86,7 @@ export default function UserDropdown() {
 							onClick={handleLogoutClick}
 							className="hover:bg-red-50! text-red-500!"
 						>
-							<LogOut size={16} />
+							<LogOut size={16} strokeWidth={2.25} />
 							Cerrar sesión
 						</DropdownItem>
 					</div>

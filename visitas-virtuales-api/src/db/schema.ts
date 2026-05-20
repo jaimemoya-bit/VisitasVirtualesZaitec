@@ -19,7 +19,10 @@ export const centers = pgTable('centers', {
 	location: text('location').notNull(),
 	imageUrl: text('image_url'),
 	createdAt: timestamp('created_at').notNull().defaultNow(),
-	updatedAt: timestamp('updated_at').notNull().defaultNow().$onUpdate(() => new Date()),
+	updatedAt: timestamp('updated_at')
+		.notNull()
+		.defaultNow()
+		.$onUpdate(() => new Date()),
 })
 
 export const userRolesArray = ['admin', 'teacher', 'guest'] as const
@@ -33,9 +36,14 @@ export const users = pgTable('users', {
 	role: userRoles('role').notNull().default('guest'),
 	imageUrl: text('image_url'),
 	createdAt: timestamp('created_at').notNull().defaultNow(),
-	updatedAt: timestamp('updated_at').notNull().defaultNow().$onUpdate(() => new Date()),
-	centerPreferenceId: integer('center_preference_id')
-		.references(() => centers.id, { onDelete: 'set null' })
+	updatedAt: timestamp('updated_at')
+		.notNull()
+		.defaultNow()
+		.$onUpdate(() => new Date()),
+	centerPreferenceId: integer('center_preference_id').references(
+		() => centers.id,
+		{ onDelete: 'set null' },
+	),
 })
 
 export const pois = pgTable(
@@ -82,17 +90,20 @@ export const statsPois = pgTable('stats_pois', {
 })
 
 //tabla de trazabilidad
+export type PoiDetails = {
+	oldValue?: any
+	newValue?: any
+	reason?: string
+}
 export const poiHistory = pgTable('poi_history', {
 	id: serial('id').primaryKey(),
-	poiId: integer('poi_id')
-		.notNull()
-		.references(() => pois.id, { onDelete: 'cascade' }),
+	poiId: integer('poi_id').notNull(),
 	userId: integer('user_id')
 		.notNull()
 		.references(() => users.id, { onDelete: 'cascade' }),
 	action: text('action').notNull(),
 	timestamp: timestamp('timestamp').notNull().defaultNow(),
-	details: jsonb('details'),
+	details: jsonb('details').$type<PoiDetails>().notNull(),
 })
 
 /* Definir relaciones entre tablas para permitir a Drizzle simplificar 
@@ -152,6 +163,17 @@ export const statsPoisRelations = relations(statsPois, ({ one }) => ({
 	}),
 }))
 
+export const poiHistoryRelations = relations(poiHistory, ({ one }) => ({
+	poi: one(pois, {
+		fields: [poiHistory.poiId],
+		references: [pois.id],
+	}),
+	user: one(users, {
+		fields: [poiHistory.userId],
+		references: [users.id],
+	}),
+}))
+
 /* Derivar tipos a partir de las tablas */
 export type Center = typeof centers.$inferSelect
 export type User = typeof users.$inferSelect
@@ -168,6 +190,9 @@ export type UserSelectType = z.infer<typeof userSelectSchema>
 
 export const userInsertSchema = createInsertSchema(users)
 export type UserInsertType = z.infer<typeof userInsertSchema>
+
+export const poiHistorySelectSchema = createSelectSchema(poiHistory)
+export type PoiHistorySelectType = z.infer<typeof poiHistorySelectSchema>
 
 export const userRegisterBaseSchema = createInsertSchema(users).pick({
 	email: true,
@@ -189,7 +214,14 @@ const userLoginBaseSchema = createSelectSchema(users)
 	.omit({ id: true, role: true })
 
 export const userLoginSchema = z.object({
-	body: userLoginBaseSchema.omit({imageUrl: true, createdAt: true, updatedAt: true, centerPreferenceId: true}).refine((data) => data.email || data.username),
+	body: userLoginBaseSchema
+		.omit({
+			imageUrl: true,
+			createdAt: true,
+			updatedAt: true,
+			centerPreferenceId: true,
+		})
+		.refine((data) => data.email || data.username),
 })
 
 const userUpdateBaseSchema = createInsertSchema(users).omit({ password: true })
@@ -323,3 +355,12 @@ export const centerImageUpdateSchema = z.object({
 })
 
 export type CenterUpdateType = z.infer<typeof centerUpdateSchema>
+
+export type PoiHistoryItemType = typeof poiHistory.$inferSelect
+
+export const allCenterSchema = z.object({
+	query: z.object({
+		limit: z.coerce.number().int().positive().max(100).default(10),
+		lastId: z.coerce.number().int().positive().optional(),
+	}),
+})

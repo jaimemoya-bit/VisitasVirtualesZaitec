@@ -74,7 +74,7 @@ export default function CenterImageForm() {
 
 	return (
 		<>
-			<p className="text-sm text-slate-600 mb-2 font-medium">
+			<p className="text-sm text-slate-600 mb-2 font-medium leading-relaxed">
 				Selección de centro
 			</p>
 			<Select
@@ -83,7 +83,7 @@ export default function CenterImageForm() {
 				onChange={(e) => setSelectedId(e.target.value)}
 				defaultValue={selectedId}
 			/>
-			<p className="text-sm text-slate-600 mb-2 font-medium">
+			<p className="text-sm text-slate-600 mb-2 font-medium leading-relaxed">
 				Imagen del centro
 			</p>
 			<div className="space-y-4">

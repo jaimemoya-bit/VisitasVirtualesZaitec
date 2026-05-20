@@ -3,7 +3,7 @@ import storageService from '../services/storageService.ts'
 import { env } from '../env.ts'
 
 const assetUrlTemplate = (fileName: string) =>
-	`${env.FRONTEND_URL}/api/${env.API_VERSION}/assets/${fileName}`
+	`${env.API_BASE_URL}/api/${env.API_VERSION}/assets/${fileName}`
 
 // Limpiar el map periódicamente para evitar memory leaks en caso de subidas iniciadas pero nunca completadas
 export const uploadIdMap = new Map<

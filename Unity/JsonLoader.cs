@@ -17,14 +17,6 @@ public class JsonLoader : MonoBehaviour
     // URL base de la API donde está desplegado el servidor
     private const string API_BASE_URL = "https://visitasvirtuales.dedyn.io";
 
-    // Credenciales para obtener el token de acceso
-    private const string EMAIL = "admin_mad@instituto.es";
-    private const string PASSWORD = "Admin123!";
-
-    // Token JWT que obtenemos al hacer login
-    // Lo guardamos para reutilizarlo en cada petición
-    private string accessToken = "";
-
     void Start()
     {
         // Antes de pedir POIs, revisa WebBridge recibio un ID desde la web, si lo tiene usa ese.
@@ -39,69 +31,7 @@ public class JsonLoader : MonoBehaviour
         {
             Debug.LogWarning($"[JsonLoader] WebBridge sin ID, usando valor del Inspector: {idCentro}");
         }
-
-        // Primero hacemos login para obtener el token
-        // y cuando lo tengamos empezamos a pedir los POIs
-        StartCoroutine(IniciarConexion());
-    }
-
-    IEnumerator IniciarConexion()
-    {
-        // Login para obtener el token
-        yield return StartCoroutine(Login());
-
-        // Si tenemos token arrancamos el bucle de actualización
-        if (!string.IsNullOrEmpty(accessToken))
-        {
-            Debug.Log("[JsonLoader] Login correcto, iniciando carga de POIs...");
-            StartCoroutine(ActualizarJson());
-        }
-        else
-        {
-            Debug.LogWarning("[JsonLoader] No se pudo obtener el token, verifica las credenciales.");
-        }
-    }
-
-    IEnumerator Login()
-    {
-        // Endpoint de login según la documentación de la API
-        string url = $"{API_BASE_URL}/api/v1/users/auth";
-
-        // Construimos el cuerpo de la petición con las credenciales
-        string bodyJson = $"{{\"email\":\"{EMAIL}\",\"password\":\"{PASSWORD}\"}}";
-
-        using (UnityWebRequest www = new UnityWebRequest(url, "POST"))
-        {
-            // Convertimos el JSON a bytes para enviarlo
-            byte[] bodyRaw = System.Text.Encoding.UTF8.GetBytes(bodyJson);
-            www.uploadHandler = new UploadHandlerRaw(bodyRaw);
-            www.downloadHandler = new DownloadHandlerBuffer();
-
-            // Le decimos a la API que mandamos JSON
-            www.SetRequestHeader("Content-Type", "application/json");
-
-            yield return www.SendWebRequest();
-
-            if (www.result != UnityWebRequest.Result.Success)
-            {
-                Debug.LogWarning($"[JsonLoader] Error en login: {www.error}");
-                yield break;
-            }
-
-            // Deserializamos la respuesta para obtener el accessToken
-            string json = www.downloadHandler.text;
-            TokenResponse tokenResponse = JsonUtility.FromJson<TokenResponse>(json);
-
-            if (tokenResponse != null && !string.IsNullOrEmpty(tokenResponse.accessToken))
-            {
-                accessToken = tokenResponse.accessToken;
-                Debug.Log("[JsonLoader] Token obtenido correctamente.");
-            }
-            else
-            {
-                Debug.LogWarning("[JsonLoader] La respuesta del login no contiene token.");
-            }
-        }
+        StartCoroutine(ActualizarJson());
     }
 
     IEnumerator ActualizarJson()
@@ -113,6 +43,7 @@ public class JsonLoader : MonoBehaviour
         }
     }
 
+    // El endpoint para listar los POIs de un centro no requiere autenticación
     IEnumerator ObtenerPoisDesdeAPI()
     {
         // Construimos la URL con el id numérico del centro
@@ -120,22 +51,10 @@ public class JsonLoader : MonoBehaviour
 
         using (UnityWebRequest www = UnityWebRequest.Get(url))
         {
-            // Añadimos el token JWT en el header de autorización
-            www.SetRequestHeader("Authorization", $"Bearer {accessToken}");
-
             yield return www.SendWebRequest();
-
-            // Si el token ha expirado, hacemos login de nuevo automáticamente
-            if (www.responseCode == 403)
-            {
-                Debug.LogWarning("[JsonLoader] Token expirado, renovando...");
-                yield return StartCoroutine(Login());
-                yield break;
-            }
-
             if (www.result != UnityWebRequest.Result.Success)
             {
-                Debug.LogWarning($"[JsonLoader] Error obteniendo POIs: {www.error}");
+                Debug.LogWarning($"[JsonLoader] Error al obtener POIs: {www.error}");
                 yield break;
             }
 
@@ -163,13 +82,6 @@ public class JsonLoader : MonoBehaviour
 }
 
 // --- Clases de datos que reflejan la respuesta de la API ---
-
-// Respuesta del endpoint de login
-[System.Serializable]
-public class TokenResponse
-{
-    public string accessToken;
-}
 
 // El campo details de cada POI contiene la descripción
 [System.Serializable]
