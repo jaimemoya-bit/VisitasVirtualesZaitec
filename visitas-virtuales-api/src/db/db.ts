@@ -18,4 +18,14 @@ if (process.env.NODE_ENV !== 'production') {
 }
 const db = drizzle(pool, { schema })
 
+export async function verifyDatabaseConnection() {
+	try {
+		await pool.query('SELECT 1')
+	} catch (error) {
+		throw new Error(
+			`Error de conexión a la base de datos`,
+		)
+	}
+}
+
 export { db }

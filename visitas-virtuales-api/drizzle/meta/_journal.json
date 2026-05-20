@@ -50,6 +50,13 @@
       "when": 1777376469664,
       "tag": "0006_amusing_madrox",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1777999316945,
+      "tag": "0007_handy_weapon_omega",
+      "breakpoints": true
     }
   ]
 }

@@ -17,12 +17,29 @@ import {
 import { validateRequest } from '../middlewares/validation.ts'
 import hasRole from '../middlewares/hasRole.ts'
 import multer from 'multer'
+import rateLimit from 'express-rate-limit'
+import { env } from '../env.ts'
 
 export const router = Router()
 const upload = multer({
 	storage: multer.memoryStorage(),
 	limits: { fileSize: 10 * 1024 * 1024 },
 }) // Limitar a 10MB por parte
+
+// Middleware para rate limiting en rutas de autenticación (20 solicitudes cada 15 minutos por IP por defecto)
+const authLimiter = rateLimit({
+	windowMs: env.AUTH_RATE_LIMIT_WINDOW,
+	max: env.AUTH_RATE_LIMIT_MAX,
+	message: {
+		error: 'Demasiadas solicitudes. Por favor, inténtalo de nuevo más tarde.',
+		// Tiempo en minutos para el header Retry-After
+		retryAfter: env.AUTH_RATE_LIMIT_WINDOW / (60 * 1000),
+	},
+	// Enviar información de rate limit en headers
+	standardHeaders: true,
+	// No enviar headers obsoletos
+	legacyHeaders: false,
+})
 
 /**
  * @openapi
@@ -255,6 +272,7 @@ router.post(
  */
 router.post(
 	'/users/auth',
+	authLimiter,
 	validateRequest({ body: userLoginSchema.shape.body }),
 	loginHandler,
 )
@@ -306,7 +324,7 @@ router.post(
  *                 message:
  *                   type: string
  */
-router.post('/users/auth/logout', hasRole(['admin', 'teacher']), logoutHandler)
+router.post('/users/auth/logout', logoutHandler)
 
 /**
  * @openapi
@@ -391,7 +409,7 @@ router.post('/users/auth/logout', hasRole(['admin', 'teacher']), logoutHandler)
 router.patch(
 	'/me',
 	hasRole(['admin', 'teacher']),
-	upload.single('file'), 
+	upload.single('file'),
 	validateRequest({ body: updateCurrUserProfileSchema.shape.body }),
 	userUpdateHandler,
 )
@@ -436,7 +454,11 @@ router.patch(
  *                 message:
  *                   type: string
  */
-router.post('/users/auth/refresh', refreshTokenHandler)
+router.post(
+	'/users/auth/refresh',
+	authLimiter,
+	refreshTokenHandler,
+)
 
 /**
  * @openapi

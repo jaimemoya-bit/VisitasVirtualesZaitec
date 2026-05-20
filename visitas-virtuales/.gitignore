@@ -26,6 +26,9 @@ dist-ssr
 # Secrets
 .env*
 
+# Unity WebGL build output (IGNORE ENTIRE FOLDER)
+public/Build_Unity/
+
 # Unity WebGL generated data (can exceed GitHub file size limits)
 public/Build_Unity/Build/*.data
 

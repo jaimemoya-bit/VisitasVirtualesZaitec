@@ -1,276 +1,288 @@
-import { useState, useEffect, useRef, useMemo, useCallback } from 'react'
+import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import {
-  setLocalStorageAccessToken,
-  getLocalStorageAccessToken,
-  removeLocalStorageAccessToken,
-  isTokenExpired,
-} from '../helpers/authLocalStorage.js'
-import { sleep } from '../helpers/sleep.js'
-import { AuthContext } from '@/context/AuthContext.js'
-import fetchWithTimeout from '@/helpers/fetchWithTimeout.js'
-import LoadingPage from '../components/LoadingPage.jsx'
-import { useNavigate } from 'react-router-dom';
+	getLocalStorageAccessToken,
+	setLocalStorageAccessToken,
+	isTokenExpired,
+	getLocalStorageUser,
+	setLocalStorageUser,
+	clearAuthLocalStorage,
+} from '../helpers/authLocalStorage.js';
+import { AuthContext } from '@/context/AuthContext.js';
+import LoadingPage from '../components/LoadingPage.jsx';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { toast } from 'sonner';
+import { fetchWithAuth } from '../helpers/fetchWithAuth.js';
 
-// Proveedor del contexto. Maneja estado de usuario, autenticación, centros y carga inicial
+/**
+ * @typedef {Object} AuthContextType
+ * @property {Object|null} user Perfil del usuario autenticado o null
+ * @property {string} user.id ID del usuario
+ * @property {string} user.email Email del usuario
+ * @property {string} user.role Rol del usuario ('admin' | 'teacher')
+ * @property {boolean} isAdmin True si el usuario es admin
+ * @property {boolean} isTeacher True si el usuario es teacher
+ * @property {Function} login Función para iniciar sesión (accessToken: string) => Promise<void>
+ * @property {Function} logout Función para cerrar sesión () => Promise<void>
+ * @property {Function} fetchProfile Función para cargar el perfil del usuario () => Promise<void>
+ * @property {boolean} isProfileLoading True si el perfil del usuario se está cargando por primera vez
+ */
+
+/** Context provider de estado de usuario, autenticación y gestión de tokens
+ * @param {JSX.Element} props.children Componentes hijos que consumirán el contexto
+ * @returns {JSX.Element}
+ */
 export const AuthProvider = ({ children }) => {
-  // Estado de carga inicial (espera a cargar perfil y centros antes de mostrar la app)
-  const [isInitialLoading, setIsInitialLoading] = useState(true)
-  const CHECK_INTERVAL = 5 * 60 * 1000;
-  const lastCheckRef = useRef(Date.now());
-  const [isExiting, setIsExiting] = useState(false) // Para manejar transición al cargar página
-  const navigate = useNavigate();
-  // Perfil del usuario autenticado y token de acceso
-  const [authState, setAuthState] = useState({
-    user: null,
-    isUserLoading: false,
-    userError: null,
-  })
+	// Estado para controlar carga inicial del perfil del usuario
+	const [authState, setAuthState] = useState({
+		user: getLocalStorageUser() || null,
+		isUserLoading: false,
+		accessToken: getLocalStorageAccessToken(),
+	});
 
-  // Carga inicial de centros desde localStorage al montar el proveedor, para evitar parpadeos y llamadas innecesarias
-  const getInitialCenters = () => {
-    let allCenters = [];
-    let selectedCenter = null;
-    try {
-      const storedCenters = localStorage.getItem('allCenters');
-      if (storedCenters) allCenters = JSON.parse(storedCenters);
-      const storedSelected = localStorage.getItem('selectedCenter');
-      if (storedSelected) selectedCenter = JSON.parse(storedSelected);
-    } catch {
-      localStorage.removeItem('allCenters');
-      localStorage.removeItem('selectedCenter');
-    }
-    return {
-      allCenters,
-      isCentersLoading: false,
-      centersError: null,
-      selectedCenter,
-    };
-  };
+	const clearAuthState = useCallback(() => {
+		setAuthState({
+			user: null,
+			isUserLoading: false,
+			accessToken: null,
+		});
+	}, []);
 
-  const [centerState, setCenterState] = useState(getInitialCenters);
+	// Estados y constantes para controlar la animación de carga inicial
+	const [isExiting, setIsExiting] = useState(false);
+	const [showLoading, setShowLoading] = useState(true);
+	const CHECK_INTERVAL = 5 * 60 * 1000;
+	const MIN_LOADING_DURATION = 600;
+	const isMountedRef = useRef(false);
+	const isLoggingOut = useRef(false);
 
-  /* =========================================== */
-  /* ==== Autenticación y gestión de tokens ==== */
-  /* =========================================== */
+	const navigate = useNavigate();
+	const location = useLocation();
 
-  const refreshTokens = useCallback(async () => {
-    try {
-      const response = await fetchWithTimeout('/api/users/auth/refresh', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-      }, 5000)
+	// Si hay rastro de usuario o token, consideramos que hay una sesión que vale la pena intentar cargar
+	const hasStoredSession =
+		Boolean(getLocalStorageAccessToken()) || Boolean(getLocalStorageUser());
 
-      if (!response.ok) throw new Error('No se pudieron renovar los tokens')
-      const data = await response.json()
-      setAuthState((prev) => ({ ...prev, accessToken: data.accessToken }))
-      return data.accessToken
-    } catch {
-      setAuthState((prev) => ({ ...prev, user: null, accessToken: null }))
-      return null
-    }
-  }, []);
+	const isPublicPage =
+		location.pathname === '/' ||
+		location.pathname === '/login' ||
+		location.pathname === '/centros' ||
+		location.pathname === '/viewer';
 
-  const getValidAccessToken = useCallback(async () => {
-    const token = getLocalStorageAccessToken()
-    if (!token) return null
+	/* =========================================== */
+	/* ==== Autenticación y gestión de tokens ==== */
+	/* =========================================== */
 
-    if (isTokenExpired(token)) {
-      const newToken = await refreshTokens()
-      if (!newToken) {
-        removeLocalStorageAccessToken();
-        return null
-      }
-      return newToken
-    }
+	const refreshTokens = useCallback(async () => {
+		try {
+			const response = await fetch('/api/users/auth/refresh', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				credentials: 'include',
+			});
+			if (!response.ok) throw new Error();
+			const data = await response.json();
+			setAuthState((prev) => ({ ...prev, accessToken: data.accessToken }));
+			setLocalStorageAccessToken(data.accessToken);
+			return data.accessToken;
+		} catch {
+			return null;
+		}
+	}, []);
 
-    return token
-  }, [refreshTokens]);
+	const getValidAccessToken = useCallback(
+		async (silent = false) => {
+			const token = getLocalStorageAccessToken();
 
-  /* ============================= */
-  /* ==== Gestión de usuarios ==== */
-  /* ============================= */
+			// Si no hay token, intentamos un refresh silencioso antes de rendirnos
+			if (!token) {
+				const refreshedToken = await refreshTokens();
+				return refreshedToken; // Puede ser null
+			}
 
-  // Carga el perfil del usuario autenticado, renovando tokens si es necesario
-  const fetchProfile = useCallback(async (providedToken = null) => {
-    try {
-      let token = providedToken || (await getValidAccessToken());
-      if (token) {
-        const res = await fetchWithTimeout(
-          '/api/me',
-          { headers: { Authorization: `Bearer ${token}` } },
-          5000
-        );
-        if (!res.ok) throw new Error('Session invalid');
-        const data = await res.json();
-        setAuthState((prev) => ({ ...prev, user: data.profile }));
-      } else {
-        setAuthState((prev) => ({ ...prev, user: null }));
-      }
-    } catch {
-      removeLocalStorageAccessToken();
-      setAuthState((prev) => ({ ...prev, user: null }));
-    }
-  }, [getValidAccessToken]);
+			if (isTokenExpired(token)) {
+				const newToken = await refreshTokens();
+				if (!newToken) {
+					if (!silent && !isLoggingOut.current) {
+						toast.error('Tu sesión ha expirado.');
+					}
+					return null;
+				}
+				return newToken;
+			}
 
-  /* ============================ */
-  /* ==== Gestión de centros ==== */
-  /* ============================ */
+			return token;
+		},
+		[refreshTokens],
+	);
 
-  // Carga la lista de centros, renovando tokens si es necesario
-  const fetchCenters = useCallback(async (providedToken = null) => {
-    setCenterState((prev) => ({ ...prev, isCentersLoading: true, centersError: null }));
-    try {
-      const token = providedToken || (await getValidAccessToken());
-      const response = await fetchWithTimeout(
-        '/api/centers',
-        { headers: { Authorization: `Bearer ${token}` } },
-        5000
-      );
+	/* ============================= */
+	/* ==== Gestión de usuarios ==== */
+	/* ============================= */
 
-      if (!response.ok) throw new Error('Error al cargar centros');
+	/** Al hacer logout, se avisa al backend para invalidar tokens, se limpia el estado y localStorage y se redirige a landing */
+	const logout = useCallback(async () => {
+		if (isLoggingOut.current) return;
+		isLoggingOut.current = true;
 
-      const data = await response.json();
-      lastCheckRef.current = Date.now();
-      
-      setCenterState((prev) => {
-        const prevStr = JSON.stringify(prev.allCenters);
-        const newStr = JSON.stringify(data.centers);
-        if (prevStr !== newStr) {
-          localStorage.setItem('allCenters', newStr);
-          return { ...prev, allCenters: data.centers };
-        }
-        return { ...prev };
-      });
-    } catch {
-      setCenterState((prev) => ({ ...prev, centersError: 'Error de red' }));
-    } finally {
-      setCenterState((prev) => ({ ...prev, isCentersLoading: false }));
-    }
-  }, [getValidAccessToken]);
+		const token = await getValidAccessToken(true);
+		try {
+			if (token) {
+				await fetch('/api/users/auth/logout', {
+					method: 'POST',
+					headers: {
+						'Content-Type': 'application/json',
+						Authorization: `Bearer ${token}`,
+					},
+				});
+			}
+		} catch (err) {
+			console.error('Error al cerrar sesión:', err);
+		} finally {
+			clearAuthState();
+			clearAuthLocalStorage();
+			isLoggingOut.current = false;
+			if (!isPublicPage) {
+				navigate('/');
+			}
+		}
+	}, [navigate, getValidAccessToken, clearAuthState, isPublicPage]);
 
-  // Actualizar la imagen de un centro específico en estado local después de subirla
-  const updateCenterImage = useCallback((centerId, imageUrl) => {
-      const id = Number(centerId);
-      setCenterState((prev) => {
-          const updatedCenters = prev.allCenters.map(c =>
-              c.id === id ? { ...c, imageUrl } : c
-          );
-          const updatedSelected = prev.selectedCenter?.id === id
-              ? { ...prev.selectedCenter, imageUrl }
-              : prev.selectedCenter;
+	/** Carga el perfil del usuario autenticado; fetchWithAuth intenta refresh si falta el access token. */
+	const fetchProfile = useCallback(async () => {
+		if (isLoggingOut.current) return;
+		try {
+			// Intentamos cargar el perfil. fetchWithAuth ya maneja la lógica de refresco si el token falta/falla
+			const res = await fetchWithAuth('/api/me', {}, logout);
 
-          localStorage.setItem('allCenters', JSON.stringify(updatedCenters));
-          localStorage.setItem('selectedCenter', JSON.stringify(updatedSelected));
+			if ((res.status === 401 || res.status === 403) && !isLoggingOut.current) {
+				toast.error('Sesión expirada', {
+					description:
+						'Tu sesión ha expirado. Por favor, inicia sesión de nuevo.',
+				});
+				return;
+			}
 
-          return { ...prev, allCenters: updatedCenters, selectedCenter: updatedSelected };
-      });
-  }, []);
+			if (!res.ok) {
+				// Si la petición falla y no tenemos sesión guardada localmente, limpiamos
+				if (!hasStoredSession) {
+					clearAuthState();
+					clearAuthLocalStorage();
+				}
+				throw new Error();
+			}
 
-  // Al hacer login, se guarda el token y se cargan perfil y centros solo si no están cargados
-  const login = useCallback(async (accessToken) => {
-    setIsInitialLoading(true);
-    setIsExiting(false);
-    
-    setLocalStorageAccessToken(accessToken);
-    setAuthState((prev) => ({ ...prev, accessToken }));
+			const data = await res.json();
+			setAuthState((prev) => ({ ...prev, user: data.profile }));
+			setLocalStorageUser(data.profile);
+		} catch {
+			if (!isLoggingOut.current && hasStoredSession) {
+				toast.error('Error al cargar perfil');
+			}
+		}
+	}, [logout, clearAuthState, hasStoredSession]);
 
-    // Evitar re-renders innecesarios cargando perfil y centros en paralelo
-    await Promise.all([
-      fetchProfile(accessToken),
-      fetchCenters(accessToken),
-    ]);
+	const loadProfileWithTransition = useCallback(async () => {
+		setAuthState((prev) => ({ ...prev, isUserLoading: true }));
+		setIsExiting(false);
+		setShowLoading(true);
 
-    setIsExiting(true);
-    setIsInitialLoading(false);
-  }, [fetchProfile, fetchCenters]);
+		const startTime = Date.now();
 
-  const saveSelectedCenter = useCallback((center) => {
-    setCenterState((prev) => ({ ...prev, selectedCenter: center }))
-    localStorage.setItem('selectedCenter', JSON.stringify(center))
-  }, []);
+		try {
+			await fetchProfile();
+		} finally {
+			const elapsed = Date.now() - startTime;
+			const remaining = Math.max(0, MIN_LOADING_DURATION - elapsed);
 
-  const saveAllCenters = useCallback((allCenters) => {
-    setCenterState((prev) => ({ ...prev, allCenters }))
-    localStorage.setItem('allCenters', JSON.stringify(allCenters))
-  }, []);
+			await new Promise((resolve) => setTimeout(resolve, remaining));
 
-  const logout = useCallback(async () => {
-    const token = getLocalStorageAccessToken();
-    setAuthState({ user: null, accessToken: null, isUserLoading: false })
-    setCenterState({ allCenters: [], isCentersLoading: false, centersError: null, selectedCenter: null })
-    removeLocalStorageAccessToken();
-    localStorage.clear();
+			setAuthState((prev) => ({ ...prev, isUserLoading: false }));
+			setIsExiting(true);
 
-    setTimeout(() => {
-        navigate('/', { replace: true });
-    }, 10);
+			await new Promise((resolve) => setTimeout(resolve, 1000));
+			setShowLoading(false);
+		}
+	}, [fetchProfile, MIN_LOADING_DURATION]);
 
-    try {
-      await fetch('/api/users/auth/logout', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-      })
-    } catch (err) {
-      console.error('Error al cerrar sesión:', err);
-    }
-  }, [navigate, setAuthState, setCenterState]);
+	const loadProfileSilent = useCallback(async () => {
+		await fetchProfile();
+	}, [fetchProfile]);
 
-  // Cargar perfil y centros al montar solo si no están ya cargados ni en localStorage
-  useEffect(() => {
-    const init = async () => {
-      const needsCenters = !centerState.allCenters || centerState.allCenters.length === 0;
-      const expired = lastCheckRef.current + CHECK_INTERVAL < Date.now();
+	/** Al hacer login, se guarda el token en localStorage y en estado y se carga el perfil del usuario.
+	 * @param {string} accessToken Token de acceso devuelto por el backend
+	 */
+	const login = useCallback(
+		async (accessToken) => {
+			setLocalStorageAccessToken(accessToken);
+			setAuthState((prev) => ({ ...prev, accessToken }));
+			await loadProfileWithTransition();
+		},
+		[loadProfileWithTransition],
+	);
 
-      await Promise.all([
-        fetchProfile(),
-        (needsCenters || expired) ? fetchCenters() : Promise.resolve(),
-        sleep(1200)
-      ]);
+	// Cargar perfil al montar provider, con animación de carga inicial
+	useEffect(() => {
+		const initProfile = async () => {
+			if (!hasStoredSession) {
+				setAuthState((prev) => ({ ...prev, isUserLoading: false }));
+				setIsExiting(true);
+				setShowLoading(false);
+				return;
+			}
 
-      setIsExiting(true);
-      await sleep(1000);
-      setIsInitialLoading(false);
-    }
-    init();
-  }, []);
+			if (!isMountedRef.current) {
+				await loadProfileWithTransition();
+				isMountedRef.current = true;
+			} else {
+				await loadProfileSilent();
+			}
+		};
 
-  const isAdmin = authState.user?.role === 'admin'
-  const isTeacher = authState.user?.role === 'teacher'
+		initProfile();
 
-  // Evitar re-renders innecesarios usando useMemo
-  const value = useMemo(() => ({
-    authState,
-    centerState,
-    login,
-    logout,
-    fetchProfile,
-    fetchCenters,
-    saveAllCenters,
-    saveSelectedCenter,
-    updateCenterImage,
-    isInitialLoading,
-    isAdmin,
-    isTeacher,
-  }), [authState, centerState, login, logout, fetchProfile, fetchCenters, saveAllCenters, saveSelectedCenter, updateCenterImage, isInitialLoading, isAdmin, isTeacher]);
+		const interval = hasStoredSession
+			? setInterval(() => {
+					loadProfileSilent();
+				}, CHECK_INTERVAL)
+			: null;
 
-  return (
-    <AuthContext.Provider value={value}>
-      {isInitialLoading && <LoadingPage isExiting={isExiting} />}
+		return () => {
+			if (interval) clearInterval(interval);
+		};
+	}, [
+		CHECK_INTERVAL,
+		hasStoredSession,
+		loadProfileSilent,
+		loadProfileWithTransition,
+	]);
 
-      <div 
-        className={`
+	// Evitar re-renders innecesarios usando useMemo
+	const value = useMemo(
+		() => ({
+			user: authState.user,
+			isAdmin: authState.user?.role === 'admin',
+			isTeacher: authState.user?.role === 'teacher',
+			login,
+			logout,
+			fetchProfile,
+			isInitialLoading: authState.isUserLoading,
+		}),
+		[login, logout, fetchProfile, authState.isUserLoading, authState.user],
+	);
+
+	return (
+		<AuthContext.Provider value={value}>
+			{showLoading && <LoadingPage isExiting={isExiting} />}
+			<div
+				className={`
           w-full min-h-screen
           transition-opacity duration-1000 ease-in-out
           ${isExiting ? 'opacity-100' : 'opacity-0'}
-          ${isInitialLoading ? 'pointer-events-none' : ''}
+          ${authState.isUserLoading && !isExiting ? 'pointer-events-none' : ''}
         `}
-      >
-        {children}
-      </div>
-    </AuthContext.Provider>
-  )
-}
+			>
+				{children}
+			</div>
+		</AuthContext.Provider>
+	);
+};

@@ -44,6 +44,7 @@ export const verifyToken = async (token: string) => {
 		})
 		return { payload: payload as TokenPayload }
 	} catch (e: any) {
+		console.error('Error verificando token JWT:', e)
 		throw new Error('Token inválido o expirado: ' + e.message)
 	}
 }

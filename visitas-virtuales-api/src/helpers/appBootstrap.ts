@@ -4,6 +4,7 @@ import { UPLOAD_TTL_MS } from '../jobs/uploadCleanupJob.ts'
 import { env } from '../env.ts'
 import app from '../app.ts'
 import uploadCleanupJob from '../jobs/uploadCleanupJob.ts'
+import { verifyDatabaseConnection } from '../db/db.ts'
 
 const uploadCleanupJobInstance = uploadCleanupJob(
 	storageService,
@@ -13,6 +14,8 @@ const uploadCleanupJobInstance = uploadCleanupJob(
 
 export default async function appBootstrap() {
 	try {
+		await verifyDatabaseConnection()
+		await storageService.verifyConnection()
 		await storageService.init()
 		uploadCleanupJobInstance.start()
 		app.listen(env.APP_PORT, () =>
@@ -20,7 +23,9 @@ export default async function appBootstrap() {
 		)
 	} catch (e) {
 		uploadCleanupJobInstance.stop()
-		console.error('Error al inicializar MinIO', e)
+		console.error(
+			e instanceof Error ? e.message : 'Error al inicializar la aplicación',
+		)
 		process.exit(1)
 	}
 }

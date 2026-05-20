@@ -78,7 +78,7 @@ router.post(
  * @openapi
  * /api/v1/centers/{centerId}/pois:
  *   get:
- *     summary: Listar POIs de un centro específico con paginación
+ *     summary: Listar POIs de un centro específico con paginación opcional
  *     description: Esta ruta permite a los usuarios obtener una lista de POIs asociados a un centro específico. El ID del centro se proporciona como parámetro en la URL. Además, se pueden incluir parámetros de consulta para paginar los resultados, como el número de POIs por página (limit) y el ID del último POI obtenido en la página anterior (lastId) para cargar la siguiente página de resultados.
  *     tags: [POIs]
  *     security:

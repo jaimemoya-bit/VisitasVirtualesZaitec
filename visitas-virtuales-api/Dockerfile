@@ -14,8 +14,8 @@ RUN npm run openapi:generate
 FROM node:25-slim AS runner
 WORKDIR /app
 
-# Instalar netcat y psql
-RUN apt-get update && apt-get install -y netcat-openbsd postgresql-client && rm -rf /var/lib/apt/lists/*
+# Instalar netcat, curl y psql
+RUN apt-get update && apt-get install -y netcat-openbsd postgresql-client curl && rm -rf /var/lib/apt/lists/*
 
 # Instalar PM2
 RUN npm install -g pm2
@@ -29,7 +29,8 @@ RUN npm ci --omit=dev
 # Copiar lo necesario desde la build layer
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/drizzle ./drizzle
-COPY --from=builder /app/docs/openapi.json ./docs/openapi.json
+COPY --from=builder /app/openapi.json ./openapi.json
+COPY --from=builder /app/scripts ./scripts
 COPY --from=builder /app/package.json ./package.json
 COPY --from=builder /app/drizzle.config.js ./drizzle.config.js
 COPY --from=builder /app/ecosystem.config.cjs ./ecosystem.config.cjs

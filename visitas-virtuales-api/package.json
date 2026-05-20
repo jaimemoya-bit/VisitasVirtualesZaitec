@@ -1,10 +1,10 @@
 {
-	"name": "visitasvirtualeszaitec",
-	"version": "1.0.0",
+	"name": "visitas-virtuales-api",
+	"version": "0.1.0",
 	"description": "",
 	"main": "index.js",
 	"scripts": {
-		"dev": "nodemon --watch 'src/**/*.{js,ts}' --exec 'node --import ./src/env.ts src/index.ts'",
+		"dev": "npm run openapi:generate && tsx watch src/index.ts",
 		"db:up": "docker compose up -d postgres_service",
 		"db:down": "docker compose down postgres_service",
 		"db:generate": "drizzle-kit generate",
@@ -14,7 +14,7 @@
 		"db:logs": "docker compose logs -f postgres_service",
 		"storage:up": "docker compose up -d minio_service",
 		"storage:down": "docker compose down minio_service",
-		"sorage:logs": "docker compose logs -f minio_service",
+		"storage:logs": "docker compose logs -f minio_service",
 		"prod:up": "docker compose -f docker-compose.prod.yml --env-file .env.prod up -d --build",
 		"prod:down": "docker compose -f docker-compose.prod.yml --env-file .env.prod down",
 		"prod:restart": "npm run prod:down && npm run prod:up",
@@ -26,6 +26,7 @@
 		"stage:restart": "npm run stage:down && npm run stage:up",
 		"stage:logs": "docker compose -f docker-compose.stage.yml --env-file .env.stage logs -f api_service",
 		"stage:ps": "docker compose -f docker-compose.stage.yml --env-file .env.stage ps",
+		"prod:db:seed": "node --import ./dist/env.js dist/db/seedProd.js",
 		"build": "tsc",
 		"openapi:generate": "node scripts/generate-openapi.js",
 		"format": "prettier --write ."
@@ -46,10 +47,11 @@
 		"cors": "^2.8.6",
 		"dotenv": "^17.4.1",
 		"dotenv-expand": "^12.0.3",
-		"drizzle-kit": "^0.31.1",
+		"drizzle-kit": "^0.31.10",
 		"drizzle-orm": "^0.45.1",
 		"drizzle-zod": "^0.8.3",
 		"express": "^5.2.1",
+		"express-rate-limit": "^8.4.1",
 		"helmet": "^8.1.0",
 		"jose": "^6.2.2",
 		"jsonwebtoken": "^9.0.3",
@@ -75,7 +77,6 @@
 		"@types/pg": "^8.20.0",
 		"@types/swagger-ui-express": "^4.1.8",
 		"dotenv-cli": "^11.0.0",
-		"nodemon": "^3.1.14",
 		"prettier": "^3.8.1",
 		"tsx": "^4.21.0"
 	}

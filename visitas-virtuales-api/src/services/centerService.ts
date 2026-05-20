@@ -1,10 +1,13 @@
-import { eq } from 'drizzle-orm'
+import { asc, eq, gt } from 'drizzle-orm'
 import { db } from '../db/db.ts'
 import { type Center, centers, type CenterUpdateType } from '../db/schema.ts'
 import { ApiError } from '../middlewares/errorHandler.ts'
 
-const getAllCenters: () => Promise<Center[]> = async () => {
-	const centerArr: Center[] = await db
+const getAllCenters = async (
+	limit?: number,
+	lastId?: number,
+): Promise<Center[]> => {
+	return await db
 		.select({
 			id: centers.id,
 			name: centers.name,
@@ -15,8 +18,9 @@ const getAllCenters: () => Promise<Center[]> = async () => {
 			updatedAt: centers.updatedAt,
 		})
 		.from(centers)
-
-	return centerArr
+		.where(lastId ? gt(centers.id, lastId) : undefined)
+		.orderBy(asc(centers.id))
+		.limit(limit ?? 10)
 }
 
 const updateCenter = async (
@@ -107,5 +111,3 @@ export default {
 	updateCenter,
 	updateCenterImage,
 }
-
-
