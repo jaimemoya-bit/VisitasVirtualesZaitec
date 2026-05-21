@@ -82,6 +82,7 @@ export default function CenterImageForm() {
 				value={String(selectedId)}
 				onChange={(e) => setSelectedId(e.target.value)}
 				defaultValue={selectedId}
+				className="mb-4"
 			/>
 			<p className="text-sm text-slate-600 mb-2 font-medium leading-relaxed">
 				Imagen del centro
