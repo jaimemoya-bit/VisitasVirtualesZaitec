@@ -204,6 +204,27 @@ public class EditorPois : MonoBehaviour
         }
     }
 
+    private void ReabrirPanelConNombre(string tipo, string nombre, string descripcion)
+    {
+        tipoPoisPendiente = tipo;
+
+        if (tipo == "imagen")
+        {
+            if (inputNombreImagen != null) inputNombreImagen.text = nombre;
+            panelConfirmarImagen?.SetActive(true);
+            inputNombreImagen?.ActivateInputField();
+        }
+        else
+        {
+            if (inputNombre      != null) inputNombre.text      = nombre;
+            if (inputDescripcion != null) inputDescripcion.text = descripcion;
+            panelConfirmar?.SetActive(true);
+            inputNombre?.ActivateInputField();
+        }
+
+        Debug.Log("[EditorPois] Nombre duplicado — cambia el nombre e inténtalo de nuevo.");
+    }
+
     private void ConfirmarCreacionPoi()
     {
         TMP_InputField inputActivo = tipoPoisPendiente == "imagen" ? inputNombreImagen : inputNombre;
@@ -270,6 +291,13 @@ public class EditorPois : MonoBehaviour
             yield return www.SendWebRequest();
 
             Debug.Log($"[EditorPois] Body enviado: {bodyJson}");
+
+            if (www.responseCode == 409)
+            {
+                Debug.LogWarning($"[EditorPois] Nombre duplicado: ya existe un POI '{nombre}' en este centro.");
+                ReabrirPanelConNombre(tipo, nombre, descripcion);
+                yield break;
+            }
 
             if (www.result != UnityWebRequest.Result.Success)
             {
