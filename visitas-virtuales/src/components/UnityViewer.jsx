@@ -50,61 +50,35 @@ export default function UnityViewer({ modoEdicion = false }) {
 		}
 	};
 
-	// Recibe las coordenadas del nuevo POI desde Unity y lo crea en la API
-	// Unity llama a window.OnPoiCoordinatesReady con un JSON: { x, y, idCentro, userId, tipo }
-	const onPoiCoordinatesReady = useCallback(async (jsonString) => {
+	// Recibe notificación desde Unity cuando un POI ya fue creado en la API.
+	// Unity llama a window.OnPoiCoordinatesReady con un JSON: { x, y, idCentro, userId, poiId, tipo }
+	// Unity ya hizo el POST — aquí solo mostramos feedback y recargamos.
+	const onPoiCoordinatesReady = useCallback((jsonString) => {
 		try {
 			const datos = JSON.parse(jsonString);
+			console.log('[UnityViewer] POI confirmado por Unity:', datos);
 
-			const details = datos.tipo === 'imagen'
-				? { description: '', posX: datos.x, posY: datos.y, tipo: 'imagen', imagenes: [] }
-				: { description: '', posX: datos.x, posY: datos.y, tipo: 'basico' };
-
-			const response = await fetch(`${API_URL}api/v1/centers/${datos.idCentro}/pois`, {
-				method: 'POST',
-				headers: {
-					'Content-Type': 'application/json',
-					Authorization: 'Bearer ' + localStorage.getItem('accessToken'),
-				},
-				body: JSON.stringify({
-					name: 'Nuevo POI',
-					details,
-					center_id: parseInt(datos.idCentro),
-					user_id: parseInt(datos.userId),
-				}),
+			unityInstanceRef.current?.SendMessage('JsonLoader', 'RecargarPois');
+			toast.success('POI añadido correctamente', {
+				description: datos.tipo === 'imagen'
+					? 'Ahora añade las imágenes desde el editor.'
+					: 'Puedes editarlo cuando quieras.',
+				action: datos.poiId
+					? {
+							label: 'Ir a edición',
+							onClick: () => navigate('/crud', {
+								state: {
+									id: datos.poiId,
+									centerId: selectedCenter?.name,
+									tipo: datos.tipo,
+									imagenes: [],
+									isEditing: true,
+								},
+							}),
+					  }
+					: undefined,
+				duration: 6000,
 			});
-
-			if (response.ok) {
-				const data = await response.json();
-				console.log('[UnityViewer] POI creado correctamente desde Unity.');
-				// Recargar POIs en Unity para que aparezca en el visor al instante
-				unityInstanceRef.current?.SendMessage('JsonManager', 'RecargarPois');
-				// Notificar al admin con opción de ir directamente al formulario de edición
-				// La API devuelve { message, newPoi } — usamos newPoi.id para abrir el crud
-				toast.success('POI añadido correctamente', {
-					description: 'Puedes editarlo cuando quieras.',
-					action: {
-						label: 'Ir a edición',
-						onClick: () => navigate('/crud', {
-							state: {
-								id: data.newPoi.id,
-								centerId: selectedCenter?.name,
-								name: 'Nuevo POI',
-								description: '',
-								tipo: datos.tipo,
-								imagenes: [],
-								isEditing: true,
-							},
-						}),
-					},
-					duration: 6000,
-				});
-			} else {
-				console.warn('[UnityViewer] Error al crear POI:', await response.text());
-				toast.error('Error al crear el POI', {
-					description: 'Inténtalo de nuevo más tarde.',
-				});
-			}
 		} catch (error) {
 			console.error('[UnityViewer] Error procesando coords de Unity:', error);
 		}

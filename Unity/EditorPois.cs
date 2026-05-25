@@ -66,17 +66,13 @@ public class EditorPois : MonoBehaviour
 
     protected virtual void Start()
     {
-        // TEMPORAL — quitar antes de subir a producción
-        // Activa el modo edición localmente sin necesitar React
-        WebBridge.ModoEdicionActual = true;
-
         if (!WebBridge.ModoEdicionActual)
         {
             enabled = false;
             return;
         }
 
-        AutodetectarReferencias();// ← este llama a BuscarPorNombre y BuscarTransformPorNombre
+        AutodetectarReferencias();
         InicializarUI();
         ActualizarListadoPois();
     }
@@ -114,7 +110,7 @@ public class EditorPois : MonoBehaviour
         // inputNombreImagen busca NombrePoi dentro de PanelConfirmarImagen
         if (panelConfirmarImagen != null)
         {
-            Transform inputImagen = BuscarEnHijos(panelConfirmarImagen.transform, "NombrePoi");
+            Transform inputImagen = BuscarEnHijos(panelConfirmarImagen.transform, "InputNombreImagen");
             if (inputImagen != null) inputNombreImagen = inputImagen.GetComponent<TMP_InputField>();
         }
 
@@ -240,7 +236,6 @@ public class EditorPois : MonoBehaviour
     {
         string token    = jsonLoader != null ? jsonLoader.ObtenerToken() : "";
         string idCentro = jsonLoader != null ? jsonLoader.ObtenerIdCentro().ToString() : WebBridge.IdCentroActual;
-        string userId   = WebBridge.UserIdActual;
 
         if (string.IsNullOrEmpty(token))
         {
@@ -248,12 +243,16 @@ public class EditorPois : MonoBehaviour
             yield break;
         }
 
-        // POI imagen arranca con imagenes:[] vacío — se añaden desde React en /crud
         string details = tipo == "imagen"
             ? $"{{\"description\":\"\",\"posX\":{x.ToString("F4", System.Globalization.CultureInfo.InvariantCulture)}," +
               $"\"posY\":{y.ToString("F4", System.Globalization.CultureInfo.InvariantCulture)},\"tipo\":\"imagen\",\"imagenes\":[]}}"
             : $"{{\"description\":\"{EscaparJson(descripcion)}\",\"posX\":{x.ToString("F4", System.Globalization.CultureInfo.InvariantCulture)}," +
               $"\"posY\":{y.ToString("F4", System.Globalization.CultureInfo.InvariantCulture)},\"tipo\":\"basico\"}}";
+
+        string userId   = WebBridge.UserIdActual;
+            // TEMPORAL para pruebas locales
+            if (string.IsNullOrEmpty(userId))
+            userId = "1";
 
         string bodyJson = $"{{\"name\":\"{EscaparJson(nombre)}\",\"details\":{details}," +
                           $"\"center_id\":{idCentro},\"user_id\":{userId}}}";
@@ -270,15 +269,19 @@ public class EditorPois : MonoBehaviour
 
             yield return www.SendWebRequest();
 
+            Debug.Log($"[EditorPois] Body enviado: {bodyJson}");
+
             if (www.result != UnityWebRequest.Result.Success)
             {
                 Debug.LogWarning($"[EditorPois] Error creando POI: {www.error}");
                 yield break;
             }
 
-            Debug.Log($"[EditorPois] POI '{nombre}' creado en centro {idCentro}.");
+            CrearPoiResponse resp = JsonUtility.FromJson<CrearPoiResponse>(www.downloadHandler.text);
+            int nuevoId = resp?.newPoi != null ? resp.newPoi.id : 0;
+            Debug.Log($"[EditorPois] POI '{nombre}' (id:{nuevoId}) creado en centro {idCentro}.");
 
-            WebBridge.EnviarCoordenadasPoi(x, y, tipo);
+            WebBridge.EnviarCoordenadasPoi(x, y, tipo, nuevoId);
             jsonLoader?.RecargarPois();
 
             yield return new WaitForSeconds(0.5f);
@@ -405,4 +408,11 @@ public class EditorPois : MonoBehaviour
     {
         return texto.Replace("\\", "\\\\").Replace("\"", "\\\"");
     }
+}
+
+[System.Serializable]
+public class CrearPoiResponse
+{
+    public string message;
+    public Poi    newPoi;
 }
