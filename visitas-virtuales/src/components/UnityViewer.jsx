@@ -5,6 +5,7 @@ import { useAuth } from '@/hooks/useAuth.js';
 import { XCircle, Pencil } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
+import fetchWithAuth from '@/helpers/fetchWithAuth.js';
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -13,44 +14,49 @@ const API_URL = import.meta.env.VITE_API_URL;
 const UNITY_BUILD_LISTO = true;
 
 export default function UnityViewer({ modoEdicion = false }) {
-	// Obtenemos el centro seleccionado del contexto global
 	const { selectedCenter } = useCenter();
-	const { isAdmin, user } = useAuth();
+	const { isAdmin, user, logout } = useAuth();
 	const selectedCenterId = selectedCenter?.id ?? null;
 	const [errorMessage, setErrorMessage] = useState('');
 	const navigate = useNavigate();
 
-	// Calculamos sceneId directamente desde selectedCenter, sin depender de la URL
-	// Así evitamos problemas de timing cuando la URL todavía no fue actualizada
 	const sceneId =
 		selectedCenterId !== null
 			? (ESCENAS_POR_CENTRO[selectedCenterId] ?? 0)
 			: null;
 
-	// Referencia directa al canvas del DOM
-	// Es como un "puntero" para que Unity sepa dónde pintarse
 	const canvasRef = useRef(null);
 	const unityInstanceRef = useRef(null);
 	const containerRef = useRef(null);
 
+	// Refs para valores que Unity necesita pero que NO deben disparar una recarga del visor
+	const modoEdicionRef = useRef(modoEdicion);
+	const isAdminRef = useRef(isAdmin);
+	const userRef = useRef(user);
+	// Ref para el callback de POI, así Unity siempre llama a la versión más reciente
+	// sin que el useEffect de carga se re-ejecute
+	const onPoiCoordinatesReadyRef = useRef(null);
+
 	const [loadingProgress, setLoadingProgress] = useState(0);
 	const [isUnityLoaded, setIsUnityLoaded] = useState(false);
 
+	// Mantener refs sincronizadas con props/contexto sin disparar recarga de Unity
+	useEffect(() => { modoEdicionRef.current = modoEdicion; }, [modoEdicion]);
+	useEffect(() => { isAdminRef.current = isAdmin; }, [isAdmin]);
+	useEffect(() => { userRef.current = user; }, [user]);
+
 	// Alterna entre pantalla completa y modo normal
-	// Si no estamos en fullscreen lo activa, si ya estamos lo desactiva
 	const handleFullscreen = () => {
 		if (!document.fullscreenElement) {
-			// Si no estamos en fullscreen, activarlo
 			containerRef.current?.requestFullscreen().catch((err) => {
 				console.warn('Error al activar fullscreen:', err);
 			});
 		} else {
-			// Si estamos en fullscreen, salir
 			document.exitFullscreen();
 		}
 	};
 
-	// Recibe las coordenadas del nuevo POI desde Unity y lo crea en la API
+	// Recibe las coordenadas del nuevo POI desde Unity y lo crea en la API.
 	// Unity llama a window.OnPoiCoordinatesReady con un JSON: { x, y, idCentro, userId, tipo }
 	const onPoiCoordinatesReady = useCallback(async (jsonString) => {
 		try {
@@ -60,27 +66,37 @@ export default function UnityViewer({ modoEdicion = false }) {
 				? { description: '', posX: datos.x, posY: datos.y, tipo: 'imagen', imagenes: [] }
 				: { description: '', posX: datos.x, posY: datos.y, tipo: 'basico' };
 
-			const response = await fetch(`${API_URL}api/v1/centers/${datos.idCentro}/pois`, {
-				method: 'POST',
-				headers: {
-					'Content-Type': 'application/json',
-					Authorization: 'Bearer ' + localStorage.getItem('accessToken'),
+			// Nombre único con timestamp para evitar colisión 409 UNIQUE(name, centerId)
+			const poiName = `Nuevo POI ${Date.now()}`;
+
+			const response = await fetchWithAuth(
+				`${API_URL}api/v1/centers/${datos.idCentro}/pois`,
+				{
+					method: 'POST',
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify({
+						name: poiName,
+						details,
+						center_id: parseInt(datos.idCentro),
+						user_id: parseInt(datos.userId),
+					}),
 				},
-				body: JSON.stringify({
-					name: 'Nuevo POI',
-					details,
-					center_id: parseInt(datos.idCentro),
-					user_id: parseInt(datos.userId),
-				}),
-			});
+				logout,
+			);
 
 			if (response.ok) {
 				const data = await response.json();
-				console.log('[UnityViewer] POI creado correctamente desde Unity.');
-				// Recargar POIs en Unity para que aparezca en el visor al instante
-				unityInstanceRef.current?.SendMessage('JsonManager', 'RecargarPois');
-				// Notificar al admin con opción de ir directamente al formulario de edición
-				// La API devuelve { message, newPoi } — usamos newPoi.id para abrir el crud
+				console.log('[UnityViewer] POI creado correctamente desde Unity:', data.newPoi.id);
+
+				// Recargar POIs en Unity para que el nuevo aparezca en el visor al instante
+				if (unityInstanceRef.current) {
+					unityInstanceRef.current.SendMessage('JsonManager', 'RecargarPois');
+				} else {
+					console.warn('[UnityViewer] No se pudo recargar POIs: la instancia de Unity no está disponible');
+				}
+
+				// Notificar al admin con opción de ir directamente al formulario de edición.
+				// Pasamos posX/posY para que el PATCH los preserve al guardar.
 				toast.success('POI añadido correctamente', {
 					description: 'Puedes editarlo cuando quieras.',
 					action: {
@@ -89,10 +105,12 @@ export default function UnityViewer({ modoEdicion = false }) {
 							state: {
 								id: data.newPoi.id,
 								centerId: selectedCenter?.name,
-								name: 'Nuevo POI',
+								name: data.newPoi.name,
 								description: '',
 								tipo: datos.tipo,
 								imagenes: [],
+								posX: datos.x,
+								posY: datos.y,
 								isEditing: true,
 							},
 						}),
@@ -100,38 +118,45 @@ export default function UnityViewer({ modoEdicion = false }) {
 					duration: 6000,
 				});
 			} else {
-				console.warn('[UnityViewer] Error al crear POI:', await response.text());
+				const errText = await response.text();
+				console.warn('[UnityViewer] Error al crear POI:', response.status, errText);
 				toast.error('Error al crear el POI', {
-					description: 'Inténtalo de nuevo más tarde.',
+					description: response.status === 409
+						? 'Ya existe un POI con ese nombre. Inténtalo de nuevo.'
+						: 'Inténtalo de nuevo más tarde.',
 				});
 			}
 		} catch (error) {
 			console.error('[UnityViewer] Error procesando coords de Unity:', error);
+			toast.error('Error inesperado al crear el POI');
 		}
 	}, [navigate, selectedCenter]);
 
-	// Se ejecuta una sola vez cuando el componente aparece en pantalla
+	// Mantener la ref del callback actualizada para que Unity llame siempre a la última versión
+	useEffect(() => {
+		onPoiCoordinatesReadyRef.current = onPoiCoordinatesReady;
+	}, [onPoiCoordinatesReady]);
+
+	// ── Efecto de CARGA de Unity ──────────────────────────────────────────────
+	// Solo depende de centro y escena. El modo edición NO está aquí para evitar
+	// que cambiar el toggle de admin desmonte y recargue Unity completamente.
 	useEffect(() => {
 		if (selectedCenterId === null) return;
-
-		// Si el build no está listo todavía no se hace nada
 		if (!UNITY_BUILD_LISTO) {
 			console.log('Unity build no disponible aún');
 			return;
 		}
 
-		// Exponer la función JS que Unity llama cuando el admin confirma la posición de un POI
-		// Debe estar en window para que el DllImport de WebBridge.cs la encuentre
-		window.OnPoiCoordinatesReady = onPoiCoordinatesReady;
+		// Exponer el callback vía ref-wrapper: así Unity siempre llama a la versión
+		// más reciente sin que el efecto de carga tenga que re-ejecutarse
+		window.OnPoiCoordinatesReady = (jsonString) => {
+			onPoiCoordinatesReadyRef.current?.(jsonString);
+		};
 
-		// Crear el script del loader de Unity dinámicamente
 		const script = document.createElement('script');
 		script.src = '/Build_Unity/Build/Build_Unity.loader.js';
 
-		// Cuando el script termina de cargar, arrancamos Unity
 		script.onload = () => {
-			// createUnityInstance: función global que viene del loader.
-			// Recibe: el canvas, los paths a los archivos del build, y un callback de progreso
 			// eslint-disable-next-line no-undef
 			createUnityInstance(
 				canvasRef.current,
@@ -141,90 +166,64 @@ export default function UnityViewer({ modoEdicion = false }) {
 					codeUrl: '/Build_Unity/Build/Build_Unity.wasm',
 				},
 				(progress) => {
-					setLoadingProgress(progress); // Actualizamos el estado con el valor 0-1
+					setLoadingProgress(progress);
 					console.log('Cargando Unity... ' + Math.round(progress * 100) + '%');
 				},
 			)
-				//Cuando Unity termino de cargar correctamente
 				.then((unityInstance) => {
 					unityInstanceRef.current = unityInstance;
 					setIsUnityLoaded(true);
 					setErrorMessage('');
 
-					//Delay de 1.5seg para que encuente el gameobject antes
+					// Delay de 1.5s para que Unity termine de inicializar GameObjects
 					setTimeout(() => {
-						// EL PUENTE: enviamos el ID del centro a Unity
-						unityInstance.SendMessage(
-							'WebBridge',
-							'RecibirIdCentro',
-							selectedCenterId.toString(),
-						);
-
-						console.log('ID enviado a Unity:', selectedCenterId);
+						unityInstance.SendMessage('WebBridge', 'RecibirIdCentro', selectedCenterId.toString());
+						console.log('[UnityViewer] ID de centro enviado a Unity:', selectedCenterId);
 
 						if (sceneId !== null) {
-							unityInstance.SendMessage(
-								'WebBridge',
-								'RecibirIdEscena',
-								sceneId.toString(),
-							);
-							console.log('ID de escena enviado a Unity:', sceneId);
-						} else {
-							console.log(
-								'No se especificó escena en la URL, Unity usará la escena por defecto',
-							);
+							unityInstance.SendMessage('WebBridge', 'RecibirIdEscena', sceneId.toString());
+							console.log('[UnityViewer] ID de escena enviado a Unity:', sceneId);
 						}
 
-						// Si el admin activó el modo edición, enviamos el flag y su userId a Unity
-						// WebBridge los recibe y activa el Canvas_Admin en la escena correspondiente
-						if (modoEdicion && isAdmin) {
+						// Leer modo edición desde ref para no tener modoEdicion como dependencia
+						if (modoEdicionRef.current && isAdminRef.current) {
 							unityInstance.SendMessage('WebBridge', 'RecibirModoEdicion', 'true');
-							unityInstance.SendMessage('WebBridge', 'RecibirUserId', user?.id?.toString() ?? '');
-							console.log('[UnityViewer] Modo edición activado para usuario:', user?.id);
+							unityInstance.SendMessage('WebBridge', 'RecibirUserId', userRef.current?.id?.toString() ?? '');
+							console.log('[UnityViewer] Modo edición activo al cargar, usuario:', userRef.current?.id);
 						}
-					}, 1500); // 1.5 seg de espera
+					}, 1500);
 				})
-
-				// Si Unity falla al cargar
 				.catch((error) => {
 					setIsUnityLoaded(false);
-					setErrorMessage(
-						'No se pudo cargar la vista 360°. Por favor, inténtalo de nuevo más tarde.',
-					);
-					console.warn('Error al cargar Unity:', error);
+					setErrorMessage('No se pudo cargar la vista 360°. Por favor, inténtalo de nuevo más tarde.');
+					console.warn('[UnityViewer] Error al cargar Unity:', error);
 				});
 		};
 
-		// Agregar el script al documento para que empiece a descargarse
 		document.body.appendChild(script);
 
-		// Limpieza cuando el usuario salga de esta página, y que no quede unity en segundo plano
 		return () => {
-			// Limpiar la función global al desmontar el componente
 			delete window.OnPoiCoordinatesReady;
+			const instance = unityInstanceRef.current;
+			unityInstanceRef.current = null;
+			setIsUnityLoaded(false);
+			setLoadingProgress(0);
 
-			if (unityInstanceRef.current) {
-				unityInstanceRef.current
+			if (instance) {
+				instance
 					.Quit()
 					.then(() => {
-						if (document.body.contains(script)) {
-							document.body.removeChild(script);
-						}
+						if (document.body.contains(script)) document.body.removeChild(script);
 					})
 					.catch(() => {
-						if (document.body.contains(script)) {
-							document.body.removeChild(script);
-						}
+						if (document.body.contains(script)) document.body.removeChild(script);
 					});
 			} else {
-				if (document.body.contains(script)) {
-					document.body.removeChild(script);
-				}
+				if (document.body.contains(script)) document.body.removeChild(script);
 			}
 		};
-	}, [sceneId, selectedCenterId, modoEdicion, onPoiCoordinatesReady]);
+	}, [sceneId, selectedCenterId, modoEdicion]); // modoEdicion aquí → Unity recarga al cambiar de modo
 
-	// Lo que se muestra en pantalla
 	return (
 		<div className="w-full flex flex-col rounded-lg overflow-hidden bg-slate-100 h-160">
 			<div ref={containerRef} className="relative flex-1 h-full">
@@ -260,7 +259,7 @@ export default function UnityViewer({ modoEdicion = false }) {
 
 				{/* Badge modo edición — visible solo cuando el admin tiene el modo edición activo */}
 				{isUnityLoaded && modoEdicion && (
-					<div className="absolute top-3 left-3 z-10 flex items-center gap-1.5 px-3 py-1.5 bg-navy text-white text-xs font-semibold rounded-full shadow">
+					<div className="absolute bottom-3 left-3 z-10 flex items-center gap-1.5 px-3 py-1.5 bg-navy text-white text-xs font-semibold rounded-full shadow">
 						<Pencil size={12} />
 						Modo edición
 					</div>

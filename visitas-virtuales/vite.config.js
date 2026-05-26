@@ -1,11 +1,14 @@
 /* global process */
-import { defineConfig, loadEnv } from 'vite'; // Importamos loadEnv
+import { defineConfig, loadEnv } from 'vite';
 import react from '@vitejs/plugin-react';
 
 export default defineConfig(({ mode }) => {
-	// Cargamos las variables de entorno basadas en el modo (development, production, etc.)
-	// El segundo argumento 'process.cwd()' le dice a Vite que busque en la raíz del proyecto
-	const env = loadEnv(mode, process.cwd());
+	const env = loadEnv(mode, process.cwd(), '');
+	console.log('modo:', mode);
+	console.log('VITE_API_URL:', env.VITE_API_URL);
+
+	// TEMPORAL — fallback si loadEnv no lee el .env
+	const API_URL = env.VITE_API_URL || 'http://localhost:8000';
 
 	return {
 		plugins: [react()],
@@ -18,7 +21,7 @@ export default defineConfig(({ mode }) => {
 		server: {
 			proxy: {
 				'/api': {
-					target: env.VITE_API_URL,
+					target: API_URL,
 					changeOrigin: true,
 					secure: false,
 					rewrite: (path) => path.replace(/^\/api/, '/api/v1'),
