@@ -24,7 +24,7 @@ export default function ListPois({ centerId }) {
 
 	const API_URL = import.meta.env.VITE_API_URL;
 	// limit=100 para traer todos los POIs del centro (máx permitido por la API)
-	const GET_PATH = `api/v1/centers/${centerId}/pois?limit=100`;
+	const GET_PATH = `/api/v1/centers/${centerId}/pois?limit=100`;
 
 	const filteredPois = pois.filter((poi) =>
 		poi.name.toLowerCase().includes(search.toLowerCase()),
@@ -43,7 +43,7 @@ export default function ListPois({ centerId }) {
 	const deletePois = async (id) => {
 		try {
 			const response = await fetch(
-				API_URL + `api/v1/centers/${selectedCenter.id}/pois/${id}`,
+				API_URL + `/api/v1/centers/${centerId}/pois/${id}`,
 				{
 					method: 'DELETE',
 					headers: {
@@ -91,9 +91,9 @@ export default function ListPois({ centerId }) {
 
 	//He metido todo el section dentro de un div para centrarlo.
 	return (
-		<div className="relative flex flex-col items-center justify-center min-h-full w-full py-6 lg:px-12 lg:py-20 md:px-10 px-3">
-			<section className="flex flex-col gap-4 w-full justify-center min-h-125 max-w-4xl">
-				<div className="flex flex-col lg:flex-row w-full justify-between items-end gap-4">
+		<div className="relative flex flex-col items-center justify-center w-full min-h-full px-3 py-6 lg:px-12 lg:py-20 md:px-10">
+			<section className="flex flex-col justify-center w-full max-w-4xl gap-4 min-h-125">
+				<div className="flex flex-col items-end justify-between w-full gap-4 lg:flex-row">
 					<PageHeader
 						title="Gestión de puntos de interés"
 						contextText={selectedCenter.name}
@@ -114,12 +114,12 @@ export default function ListPois({ centerId }) {
 								},
 							})
 						}
-						className="ml-auto lg:ml-0 lg:w-auto w-full"
+						className="w-full ml-auto lg:ml-0 lg:w-auto"
 					>
 						<Plus size={18} strokeWidth={2.25} /> Nuevo POI
 					</Button>
 				</div>
-				<div className="p-4 min-w-full bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+				<div className="min-w-full p-4 overflow-hidden bg-white border shadow-sm rounded-2xl border-slate-100">
 					<Input
 						placeholder="Buscador de POI"
 						value={search}
@@ -131,18 +131,18 @@ export default function ListPois({ centerId }) {
 						<Search size={18} />
 					</Input>
 					{/* TODO: Filtros de fecha, centro y usuario */}
-					{/* <div className="w-full gap-6 flex items-center justify-start flex-wrap p-4 bg-slate-50 rounded-lg outline outline-slate-100 shadow-sm/8">
+					{/* <div className="flex flex-wrap items-center justify-start w-full gap-6 p-4 rounded-lg bg-slate-50 outline outline-slate-100 shadow-sm/8">
 						{Array.from(filterMap.entries()).map(([filterName, options]) => (
 							<label
 								key={filterName}
-								className="text-sm text-slate-600 gap-2 inline-flex items-center"
+								className="inline-flex items-center gap-2 text-sm text-slate-600"
 							>
 								<span className="font-medium text-slate-500">{filterName}</span>
 								<select
 									// value={filter[filterName.toLowerCase()]}
 									name={filterName.toLowerCase()}
 									// onChange={handleFilterChange}
-									className="border border-slate-200 rounded px-3 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-navy-500 focus:border-navy-500 bg-white text-slate-600"
+									className="px-3 py-1 text-sm bg-white border rounded border-slate-200 focus:outline-none focus:ring-2 focus:ring-navy-500 focus:border-navy-500 text-slate-600"
 								>
 									{options.map((option) => (
 										<option key={option} value={option}>
@@ -154,27 +154,27 @@ export default function ListPois({ centerId }) {
 						))}
 					</div> */}
 
-					<div className="overflow-x-auto outline outline-slate-100 rounded-lg bg-slate-50 shadow-sm/8 mt-5">
-						<table className="w-full min-w-0 sm:min-w-130 text-sm text-left">
-							<thead className="bg-slate-100 text-xs uppercase text-slate-600 font-semibold">
+					<div className="mt-5 overflow-x-auto rounded-lg outline outline-slate-100 bg-slate-50 shadow-sm/8">
+						<table className="w-full min-w-0 text-sm text-left sm:min-w-130">
+							<thead className="text-xs font-semibold uppercase bg-slate-100 text-slate-600">
 								<tr>
-									<th className="px-4 lg:px-6 py-4 lg:py-4">
+									<th className="px-4 py-4 lg:px-6 lg:py-4">
 										Punto de interés
 									</th>
-									<th className="hidden sm:table-cell px-4 lg:px-6 py-3 lg:py-4 text-ellipsis">
+									<th className="hidden px-4 py-3 sm:table-cell lg:px-6 lg:py-4 text-ellipsis">
 										Descripción
 									</th>
-									<th className="px-4 lg:px-6 py-4 lg:py-4 text-right">
+									<th className="px-4 py-4 text-right lg:px-6 lg:py-4">
 										Acciones
 									</th>
 								</tr>
 							</thead>
-							<tbody className="divide-y divide-slate-200 bg-white">
+							<tbody className="bg-white divide-y divide-slate-200">
 								{currentPois.length === 0 ? (
 									<tr>
 										<td
 											colSpan="3"
-											className="px-6 py-10 text-center text-slate-500 italic"
+											className="px-6 py-10 italic text-center text-slate-500"
 										>
 											No se encontraron puntos de interés
 										</td>
@@ -183,9 +183,9 @@ export default function ListPois({ centerId }) {
 									currentPois.map((poi) => (
 										<tr
 											key={poi.id}
-											className="hover:bg-slate-50/86 transition-colors"
+											className="transition-colors hover:bg-slate-50/86"
 										>
-											<td className="px-4 lg:px-6 py-4 lg:py-4 font-medium text-slate-700 text-ellipsis max-w-50 overflow-hidden whitespace-nowrap">
+											<td className="px-4 py-4 overflow-hidden font-medium lg:px-6 lg:py-4 text-slate-700 text-ellipsis max-w-50 whitespace-nowrap">
 												{poi.name}
 												{/* Badge visual para POIs de imagen */}
 												{poi.details?.tipo === 'imagen' && (
@@ -194,12 +194,12 @@ export default function ListPois({ centerId }) {
 													</span>
 												)}
 											</td>
-											<td className="hidden sm:table-cell px-4 lg:px-6 py-3 lg:py-4 text-slate-600">
+											<td className="hidden px-4 py-3 sm:table-cell lg:px-6 lg:py-4 text-slate-600">
 												<span className="text-ellipsis line-clamp-2">
 													{poi.details.description}
 												</span>
 											</td>
-											<td className="px-4 lg:px-6 py-4 lg:py-4 text-right">
+											<td className="px-4 py-4 text-right lg:px-6 lg:py-4">
 												<div className="flex justify-end gap-2 whitespace-nowrap">
 													<Link
 														to="/crud"
@@ -215,13 +215,13 @@ export default function ListPois({ centerId }) {
 															posY: poi.details?.posY,
 															isEditing: true,
 														}}
-														className="p-2 text-navy hover:bg-navy-muted rounded-xl transition-colors"
+														className="p-2 transition-colors text-navy hover:bg-navy-muted rounded-xl"
 													>
 														<Pencil size={18} />
 													</Link>
 													<button
 														onClick={() => deletePois(poi.id)}
-														className="p-2 text-red-600 hover:bg-red-100 rounded-xl transition-colors cursor-pointer"
+														className="p-2 text-red-600 transition-colors cursor-pointer hover:bg-red-100 rounded-xl"
 													>
 														<Trash size={18} />
 													</button>
@@ -234,8 +234,8 @@ export default function ListPois({ centerId }) {
 						</table>
 
 						{filteredPois.length > 0 && (
-							<div className="bg-slate-50 px-4 lg:px-6 py-3 border-t border-slate-200 flex items-center justify-between">
-								<p className="text-slate-500 text-xs leading-relaxed">
+							<div className="flex items-center justify-between px-4 py-3 border-t bg-slate-50 lg:px-6 border-slate-200">
+								<p className="text-xs leading-relaxed text-slate-500">
 									Mostrando{' '}
 									<span className="font-semibold">{firstIndex + 1}</span> -{' '}
 									<span className="font-semibold">

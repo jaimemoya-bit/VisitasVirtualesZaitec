@@ -87,31 +87,29 @@ export default function UnityViewer({ modoEdicion = false }) {
 	 }, [navigate, selectedCenter]);
 
 	// Mantener la ref del callback actualizada para que Unity llame siempre a la última versión
-	useEffect(() => {
-		onPoiCoordinatesReadyRef.current = onPoiCoordinatesReady;
-	}, [onPoiCoordinatesReady]);
-
-	// ── Efecto de CARGA de Unity ──────────────────────────────────────────────
-	// Solo depende de centro y escena. El modo edición NO está aquí para evitar
-	// que cambiar el toggle de admin desmonte y recargue Unity completamente.
-	useEffect(() => {
+		useEffect(() => {
 		if (selectedCenterId === null) return;
 		if (!UNITY_BUILD_LISTO) {
 			console.log('Unity build no disponible aún');
 			return;
 		}
 
-		// Exponer el callback vía ref-wrapper: así Unity siempre llama a la versión
-		// más reciente sin que el efecto de carga tenga que re-ejecutarse
 		window.OnPoiCoordinatesReady = (jsonString) => {
 			onPoiCoordinatesReadyRef.current?.(jsonString);
+		};
+
+		// Definir handleClickOutside aquí arriba para que el return pueda accederla
+		const handleClickOutside = (e) => {
+			if (canvasRef.current && !canvasRef.current.contains(e.target)) {
+				canvasRef.current.blur();
+				document.activeElement?.blur();
+			}
 		};
 
 		const script = document.createElement('script');
 		script.src = '/Build_Unity/Build/Build_Unity.loader.js';
 
 		script.onload = () => {
-			// eslint-disable-next-line no-undef
 			createUnityInstance(
 				canvasRef.current,
 				{
@@ -129,7 +127,9 @@ export default function UnityViewer({ modoEdicion = false }) {
 					setIsUnityLoaded(true);
 					setErrorMessage('');
 
-					// Delay de 1.5s para que Unity termine de inicializar GameObjects
+					// Registrar el listener aquí, la función está definida arriba
+					document.addEventListener('mousedown', handleClickOutside);
+
 					setTimeout(() => {
 						unityInstance.SendMessage('WebBridge', 'RecibirIdCentro', selectedCenterId.toString());
 						console.log('[UnityViewer] ID de centro enviado a Unity:', selectedCenterId);
@@ -139,7 +139,6 @@ export default function UnityViewer({ modoEdicion = false }) {
 							console.log('[UnityViewer] ID de escena enviado a Unity:', sceneId);
 						}
 
-						// Leer modo edición desde ref para no tener modoEdicion como dependencia
 						if (modoEdicionRef.current && isAdminRef.current) {
 							unityInstance.SendMessage('WebBridge', 'RecibirModoEdicion', 'true');
 							unityInstance.SendMessage('WebBridge', 'RecibirUserId', userRef.current?.id?.toString() ?? '');
@@ -156,7 +155,9 @@ export default function UnityViewer({ modoEdicion = false }) {
 
 		document.body.appendChild(script);
 
+		// Un solo return con toda la limpieza
 		return () => {
+			document.removeEventListener('mousedown', handleClickOutside);
 			delete window.OnPoiCoordinatesReady;
 			const instance = unityInstanceRef.current;
 			unityInstanceRef.current = null;

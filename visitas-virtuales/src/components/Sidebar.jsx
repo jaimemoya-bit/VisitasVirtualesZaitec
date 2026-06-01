@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth.js';
 import {
 	Home,
@@ -82,7 +83,7 @@ const Sidebar = ({ isMobileMenuOpen, setIsMobileMenuOpen }) => {
 			{/* OVERLAY: Capa oscura móvil */}
 			{isMobileMenuOpen && (
 				<div
-					className="fixed inset-0 bg-black/50 z-50 lg:hidden transition-opacity"
+					className="fixed inset-0 z-50 transition-opacity bg-black/50 lg:hidden"
 					onClick={() => setIsMobileMenuOpen(false)}
 				/>
 			)}
@@ -94,23 +95,25 @@ const Sidebar = ({ isMobileMenuOpen, setIsMobileMenuOpen }) => {
                     ${isExpanded ? 'w-64' : 'lg:w-20'}`}
 			>
 				{/* Cabecera */}
-				<div className="flex flex-col items-center gap-2 border-b border-white/20 p-6 relative">
+				<div className="relative flex flex-col items-center gap-2 p-6 border-b border-white/20">
 					<button
-						className="absolute top-4 right-4 lg:hidden p-1 hover:bg-navy-dark rounded"
+						className="absolute p-1 rounded top-4 right-4 lg:hidden hover:bg-navy-dark"
 						onClick={() => setIsMobileMenuOpen(false)}
 					>
 						<X size={20} />
 					</button>
-					<img
-						src={logo1}
-						alt="Icono"
-						className="h-12 w-12 object-contain rounded-lg cursor-pointer"
-					/>
-					<span
-						className={`font-bold text-xl tracking-widest whitespace-nowrap transition-all duration-300 ${isExpanded ? 'opacity-100' : ' lg:opacity-0 lg:invisible'}`}
-					>
-						DAVANTE
-					</span>
+					<Link to="/" className="flex flex-col items-center gap-2">
+						<img
+							src={logo1}
+							alt="Icono"
+							className="object-contain w-12 h-12 rounded-lg cursor-pointer"
+						/>
+						<span
+							className={`font-bold text-xl tracking-widest whitespace-nowrap transition-all duration-300 ${isExpanded ? 'opacity-100' : ' lg:opacity-0 lg:invisible'}`}
+						>
+							DAVANTE
+						</span>
+					</Link>
 				</div>
 
 				{/* Lista de Navegación filtrada */}
@@ -127,11 +130,11 @@ const Sidebar = ({ isMobileMenuOpen, setIsMobileMenuOpen }) => {
 					))}
 				</nav>
 				{/* Pie: Botón colapsar */}
-				<div className="hidden lg:block border-t border-white/20 p-4">
+				<div className="hidden p-4 border-t lg:block border-white/20">
 					<div className="flex items-center justify-center">
 						<button
 							onClick={() => setIsExpanded(!isExpanded)}
-							className="hover:bg-navy-dark p-2 rounded-full cursor-pointer transition-colors"
+							className="p-2 transition-colors rounded-full cursor-pointer hover:bg-navy-dark"
 							title="Expandir/Contraer"
 						>
 							<Menu size={24} strokeWidth={1.6} />
