@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Networking;
 using TMPro;
@@ -15,6 +16,14 @@ public class JsonLoader : MonoBehaviour
     // Referencia al CanvasEdicion del prefab — asignar en el Inspector de cada escena
     [SerializeField] private GameObject canvasEdicion;
 
+    [Header("POIs Dinámicos")]
+    [Tooltip("Prefab interesTEXTO — para POIs de tipo basico")]
+    [SerializeField] private GameObject prefabPoiTexto;
+    [Tooltip("Prefab interesFOTO — para POIs de tipo imagen")]
+    [SerializeField] private GameObject prefabPoiImagen;
+    [Tooltip("Radio de la esfera 360° donde se colocan los POIs")]
+    [SerializeField] private float radioEsfera = 130f;
+
     [Header("Ajustes")]
     [SerializeField] private float tiempoActualizacion = 30f; // Refresco periódico en segundos
 
@@ -30,6 +39,9 @@ public class JsonLoader : MonoBehaviour
 
     // Último conjunto de POIs recibidos — permite saber cuántos hay para calcular el índice del siguiente
     private Poi[] poisActuales = new Poi[0];
+
+    // POIs instanciados dinámicamente — se destruyen y recrean en cada recarga
+    private readonly List<GameObject> poisInstanciados = new List<GameObject>();
 
     // ── Ciclo de vida ─────────────────────────────────────────────────────────
 
@@ -168,7 +180,7 @@ public class JsonLoader : MonoBehaviour
         }
     }
 
-    // Vincula cada POI al TMP_Text de su mismo índice
+    // Vincula cada POI al TMP_Text de su mismo índice (sistema legacy de slots manuales)
     // Si hay más POIs que slots de texto, los extras se ignoran hasta que se añadan más slots
     private void ActualizarTextosPOIs(Poi[] pois)
     {
@@ -178,14 +190,87 @@ public class JsonLoader : MonoBehaviour
 
             if (i < pois.Length)
             {
-                // Slot ocupado: mostrar nombre y descripción del POI
                 textos[i].text = $"<b>{pois[i].name}</b>\n<size=80%>{pois[i].details.description}</size>";
                 textos[i].gameObject.SetActive(true);
             }
             else
             {
-                // Slot vacío: ocultarlo para que no quede texto residual en pantalla
                 textos[i].gameObject.SetActive(false);
+            }
+        }
+
+        InstanciarPoisEnEscena(pois);
+    }
+
+    // ── Instanciación dinámica de POIs en la esfera 360° ─────────────────────
+
+    private void InstanciarPoisEnEscena(Poi[] pois)
+    {
+        // Destruir los POIs instanciados en la carga anterior
+        foreach (GameObject go in poisInstanciados)
+        {
+            if (go != null) Destroy(go);
+        }
+        poisInstanciados.Clear();
+
+        if (Camera.main == null) return;
+
+        foreach (Poi poi in pois)
+        {
+            if (poi.details == null) continue;
+
+            GameObject prefab = poi.details.tipo == "imagen" ? prefabPoiImagen : prefabPoiTexto;
+            if (prefab == null)
+            {
+                Debug.LogWarning($"[JsonLoader] Prefab nulo para tipo '{poi.details.tipo}'. Asígnalo en el Inspector.");
+                continue;
+            }
+
+            GameObject instancia = Instantiate(prefab);
+            ColocarEnEsfera(instancia, poi.details.posX, poi.details.posY);
+            ConfigurarPoi(instancia, poi);
+            poisInstanciados.Add(instancia);
+        }
+
+        Debug.Log($"[JsonLoader] {poisInstanciados.Count} POIs instanciados en la escena.");
+    }
+
+        private void ColocarEnEsfera(GameObject instancia, float posX, float posY)
+{
+    float yaw   = Mathf.Lerp(-180f, 180f, posX);
+    float pitch = Mathf.Lerp( -80f,  80f, posY);
+    
+    Quaternion rotacion = Quaternion.AngleAxis(yaw, Vector3.up)
+                        * Quaternion.AngleAxis(-pitch, Vector3.right);
+    Vector3 direccion = rotacion * Vector3.forward;
+    Vector3 posicion  = Camera.main.transform.position + direccion * radioEsfera;
+
+    instancia.transform.position = posicion;
+    instancia.transform.LookAt(Camera.main.transform.position);
+    instancia.transform.Rotate(0, 180, 0);
+}
+    private void ConfigurarPoi(GameObject instancia, Poi poi)
+    {
+        // POI de imagen: asignar el ID para que MostrarImagenesDesdeAPI pueda fetchear las imágenes
+        if (poi.details.tipo == "imagen")
+        {
+            MostrarImagenesDesdeAPI comp = instancia.GetComponentInChildren<MostrarImagenesDesdeAPI>(true);
+            if (comp != null)
+                comp.idPoi = poi.id;
+            else
+                Debug.LogWarning($"[JsonLoader] MostrarImagenesDesdeAPI no encontrado en prefabPoiImagen.");
+            return;
+        }
+
+        // POI básico de texto: escribir el contenido en el TMP del panel
+        TMP_Text[] tmps = instancia.GetComponentsInChildren<TMP_Text>(true);
+        foreach (TMP_Text tmp in tmps)
+        {
+            // "TextoMostrado " es el nombre del objeto TMP dentro de interesTEXTO
+            if (tmp.gameObject.name.StartsWith("TextoMostrado"))
+            {
+                tmp.text = $"<b>{poi.name}</b>\n<size=80%>{poi.details.description}</size>";
+                break;
             }
         }
     }

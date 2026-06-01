@@ -133,7 +133,7 @@ public class EditorPois : MonoBehaviour
 
     private void InicializarUI()
     {
-        panelDerecho?.SetActive(true);
+        //panelDerecho?.SetActive(true); no esta en funcionamiento aun
         panelIzquierdo?.SetActive(false);
         panelConfirmar?.SetActive(false);
         panelConfirmarImagen?.SetActive(false);
@@ -382,7 +382,7 @@ public class EditorPois : MonoBehaviour
 
     // ── Navegación a POI ──────────────────────────────────────────────────────
 
-    private void NavegarAPoi(Poi poi)
+        private void NavegarAPoi(Poi poi)
     {
         if (cameraView == null) return;
 
@@ -390,12 +390,15 @@ public class EditorPois : MonoBehaviour
         float posY = poi.details != null ? poi.details.posY : 0.5f;
 
         float yaw   = Mathf.Lerp(-180f, 180f, posX);
-        float pitch = Mathf.Lerp(-80f,   80f, posY);
+        float pitch = Mathf.Lerp( -80f,  80f, posY);
 
-        Vector3 direccion        = Quaternion.Euler(pitch, yaw, 0f) * Vector3.forward;
-        Vector3 posicionObjetivo = cameraView.transform.position + direccion * 10f;
+        // Mismo orden que ColocarEnEsfera
+        Quaternion rotacion  = Quaternion.AngleAxis(yaw, Vector3.up)
+                            * Quaternion.AngleAxis(-pitch, Vector3.right);
+        Vector3 direccion    = rotacion * Vector3.forward;
+        Vector3 posObjetivo  = cameraView.transform.position + direccion * 10f;
 
-        cameraView.RotateCameraToLookAt(posicionObjetivo);
+        cameraView.RotateCameraToLookAt(posObjetivo);
         Debug.Log($"[EditorPois] Navegando a '{poi.name}' | yaw:{yaw:F1} pitch:{pitch:F1}");
     }
 
