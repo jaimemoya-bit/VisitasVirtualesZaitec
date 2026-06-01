@@ -56,82 +56,35 @@ export default function UnityViewer({ modoEdicion = false }) {
 		}
 	};
 
-	// Recibe las coordenadas del nuevo POI desde Unity y lo crea en la API.
-	// Unity llama a window.OnPoiCoordinatesReady con un JSON: { x, y, idCentro, userId, tipo }
-	const onPoiCoordinatesReady = useCallback(async (jsonString) => {
+
+	const onPoiCoordinatesReady = useCallback((jsonString) => {
 		try {
 			const datos = JSON.parse(jsonString);
-			console.log('[UnityViewer] POI confirmado por Unity:', datos);
+	        console.log('[UnityViewer] POI creado por Unity — id:', datos.poiId, '| tipo:', datos.tipo);
 
-			const details = datos.tipo === 'imagen'
-				? { description: '', posX: datos.x, posY: datos.y, tipo: 'imagen', imagenes: [] }
-				: { description: '', posX: datos.x, posY: datos.y, tipo: 'basico' };
-
-			// Nombre único con timestamp para evitar colisión 409 UNIQUE(name, centerId)
-			const poiName = `Nuevo POI ${Date.now()}`;
-
-			const response = await fetchWithAuth(
-				`${API_URL}api/v1/centers/${datos.idCentro}/pois`,
-				{
-					method: 'POST',
-					headers: { 'Content-Type': 'application/json' },
-					body: JSON.stringify({
-						name: poiName,
-						details,
-						center_id: parseInt(datos.idCentro),
-						user_id: parseInt(datos.userId),
-					}),
-				},
-				logout,
-			);
-
-			if (response.ok) {
-				const data = await response.json();
-				console.log('[UnityViewer] POI creado correctamente desde Unity:', data.newPoi.id);
-
-				// Recargar POIs en Unity para que el nuevo aparezca en el visor al instante
-				if (unityInstanceRef.current) {
-					unityInstanceRef.current.SendMessage('JsonManager', 'RecargarPois');
-				} else {
-					console.warn('[UnityViewer] No se pudo recargar POIs: la instancia de Unity no está disponible');
-				}
-
-				// Notificar al admin con opción de ir directamente al formulario de edición.
-				// Pasamos posX/posY para que el PATCH los preserve al guardar.
-				toast.success('POI añadido correctamente', {
-					description: 'Puedes editarlo cuando quieras.',
-					action: {
-						label: 'Ir a edición',
-						onClick: () => navigate('/crud', {
-							state: {
-								id: data.newPoi.id,
-								centerId: selectedCenter?.name,
-								name: data.newPoi.name,
-								description: '',
-								tipo: datos.tipo,
-								imagenes: [],
-								posX: datos.x,
-								posY: datos.y,
-								isEditing: true,
-							},
-						}),
-					},
-					duration: 6000,
-				});
-			} else {
-				const errText = await response.text();
-				console.warn('[UnityViewer] Error al crear POI:', response.status, errText);
-				toast.error('Error al crear el POI', {
-					description: response.status === 409
-						? 'Ya existe un POI con ese nombre. Inténtalo de nuevo.'
-						: 'Inténtalo de nuevo más tarde.',
-				});
-			}
-		} catch (error) {
-			console.error('[UnityViewer] Error procesando coords de Unity:', error);
-			toast.error('Error inesperado al crear el POI');
-		}
-	}, [navigate, selectedCenter]);
+		// Unity ya creó el POI y recargó los POIs internamente.
+	    // Solo mostramos la notificación con opción de ir a edición.
+	         toast.success('POI añadido correctamente', {
+	             description: 'Puedes editarlo cuando quieras.',
+	             action: {
+	                 label: 'Ir a edición',
+	                 onClick: () => navigate('/crud', {
+	                     state: {
+	                        id: datos.poiId,
+	                         centerId: selectedCenter?.name,
+	                         tipo: datos.tipo,
+	                         posX: datos.x,
+	                         posY: datos.y,
+	                         isEditing: true,
+	                     },
+	                 }),
+	             },
+	             duration: 6000,
+	         });
+	     } catch (error) {
+	         console.error('[UnityViewer] Error procesando señal de Unity:', error);
+	     }
+	 }, [navigate, selectedCenter]);
 
 	// Mantener la ref del callback actualizada para que Unity llame siempre a la última versión
 	useEffect(() => {
