@@ -56,43 +56,13 @@ export default function UnityViewer({ modoEdicion = false }) {
 		}
 	};
 
-<<<<<<< HEAD
-	// Recibe notificación desde Unity cuando un POI ya fue creado en la API.
-	// Unity llama a window.OnPoiCoordinatesReady con un JSON: { x, y, idCentro, userId, poiId, tipo }
-	// Unity ya hizo el POST — aquí solo mostramos feedback y recargamos.
-	const onPoiCoordinatesReady = useCallback((jsonString) => {
-=======
 	// Recibe las coordenadas del nuevo POI desde Unity y lo crea en la API.
 	// Unity llama a window.OnPoiCoordinatesReady con un JSON: { x, y, idCentro, userId, tipo }
 	const onPoiCoordinatesReady = useCallback(async (jsonString) => {
->>>>>>> origin/Web_Zaitec_Fermin
 		try {
 			const datos = JSON.parse(jsonString);
 			console.log('[UnityViewer] POI confirmado por Unity:', datos);
 
-<<<<<<< HEAD
-			unityInstanceRef.current?.SendMessage('JsonLoader', 'RecargarPois');
-			toast.success('POI añadido correctamente', {
-				description: datos.tipo === 'imagen'
-					? 'Ahora añade las imágenes desde el editor.'
-					: 'Puedes editarlo cuando quieras.',
-				action: datos.poiId
-					? {
-							label: 'Ir a edición',
-							onClick: () => navigate('/crud', {
-								state: {
-									id: datos.poiId,
-									centerId: selectedCenter?.name,
-									tipo: datos.tipo,
-									imagenes: [],
-									isEditing: true,
-								},
-							}),
-					  }
-					: undefined,
-				duration: 6000,
-			});
-=======
 			const details = datos.tipo === 'imagen'
 				? { description: '', posX: datos.x, posY: datos.y, tipo: 'imagen', imagenes: [] }
 				: { description: '', posX: datos.x, posY: datos.y, tipo: 'basico' };
@@ -157,7 +127,6 @@ export default function UnityViewer({ modoEdicion = false }) {
 						: 'Inténtalo de nuevo más tarde.',
 				});
 			}
->>>>>>> origin/Web_Zaitec_Fermin
 		} catch (error) {
 			console.error('[UnityViewer] Error procesando coords de Unity:', error);
 			toast.error('Error inesperado al crear el POI');
@@ -257,11 +226,11 @@ export default function UnityViewer({ modoEdicion = false }) {
 	}, [sceneId, selectedCenterId, modoEdicion]); // modoEdicion aquí → Unity recarga al cambiar de modo
 
 	return (
-		<div className="w-full flex flex-col rounded-lg overflow-hidden bg-slate-100 h-160">
+		<div className="flex flex-col w-full overflow-hidden rounded-lg bg-slate-100 h-160">
 			<div ref={containerRef} className="relative flex-1 h-full">
 				{/* Overlay de carga */}
 				{!isUnityLoaded && !errorMessage && (
-					<div className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-gray-900 rounded-lg w-full">
+					<div className="absolute inset-0 z-20 flex flex-col items-center justify-center w-full bg-gray-900 rounded-lg">
 						<p className="mb-3 text-sm text-white">
 							Cargando visita virtual... {Math.round(loadingProgress * 100)}%
 						</p>
@@ -276,7 +245,7 @@ export default function UnityViewer({ modoEdicion = false }) {
 
 				{/* Overlay de error */}
 				{errorMessage && (
-					<div className="absolute inset-0 z-30 flex flex-col items-center justify-center bg-gray-900 rounded-lg text-white p-4 text-center">
+					<div className="absolute inset-0 z-30 flex flex-col items-center justify-center p-4 text-center text-white bg-gray-900 rounded-lg">
 						<XCircle size={40} className="mb-2 text-red-400" />
 						<p className="text-sm italic">{errorMessage}</p>
 					</div>
