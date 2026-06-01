@@ -23,7 +23,8 @@ export default function ListPois({ centerId }) {
 	const navigate = useNavigate();
 
 	const API_URL = import.meta.env.VITE_API_URL;
-	const GET_PATH = `api/v1/centers/${centerId}/pois`;
+	// limit=100 para traer todos los POIs del centro (máx permitido por la API)
+	const GET_PATH = `api/v1/centers/${centerId}/pois?limit=100`;
 
 	const filteredPois = pois.filter((poi) =>
 		poi.name.toLowerCase().includes(search.toLowerCase()),
@@ -38,22 +39,6 @@ export default function ListPois({ centerId }) {
 	const lastIndex = safeCurrentPage * itemsPerPage;
 	const firstIndex = lastIndex - itemsPerPage;
 	const currentPois = filteredPois.slice(firstIndex, lastIndex);
-
-	const centerNames = pois.map((poi) => poi.details.centerName);
-	const userNames = pois.map((poi) => poi.details.userName);
-
-	console.log(pois);
-	const uniqueCenters = [...new Set(centerNames)];
-	const uniqueUsers = [...new Set(userNames)];
-
-	console.log('Unique Centers:', uniqueCenters);
-	console.log('Unique Users:', uniqueUsers);
-
-	const filterMap = new Map([
-		['Fecha', ['Más recientes', 'Más antiguos']],
-		['Centro', ['Todos', uniqueCenters]],
-		['Usuario', ['Todos', uniqueUsers]],
-	]);
 
 	const deletePois = async (id) => {
 		try {
@@ -223,9 +208,11 @@ export default function ListPois({ centerId }) {
 															centerId: selectedCenter.name,
 															name: poi.name,
 															description: poi.details.description,
-															// ← Pasamos tipo e imagenes para que Crud sepa si mostrar el uploader
 															tipo: poi.details?.tipo || 'basico',
 															imagenes: poi.details?.imagenes || [],
+															// Preservar coordenadas de Unity para que el PATCH no las pierda
+															posX: poi.details?.posX,
+															posY: poi.details?.posY,
 															isEditing: true,
 														}}
 														className="p-2 text-navy hover:bg-navy-muted rounded-xl transition-colors"

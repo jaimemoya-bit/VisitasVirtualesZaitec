@@ -231,6 +231,15 @@ function Crud() {
 		setFormData({ ...formData, [name]: value });
 	};
 
+	const handleTipoChange = (e) => {
+		const newTipo = e.target.value;
+		setFormData((prev) => ({ ...prev, tipo: newTipo }));
+		// Al pasar a básico limpiamos las imágenes (no aplican)
+		if (newTipo === 'basico') {
+			setImagenesLocales([]);
+		}
+	};
+
 	const handleSubmit = (e) => {
 		e.preventDefault();
 		if (isEditing) {
@@ -292,6 +301,31 @@ function Crud() {
 									placeholder="Descripción del punto de interés"
 									required
 								/>
+							</div>
+
+							{/* Tipo de POI */}
+							<div className="md:col-span-2 space-y-2">
+								<label className="block text-slate-600 text-sm font-medium">
+									Tipo:
+								</label>
+								<div className="flex gap-6">
+									{[
+										{ value: 'basico', label: 'Básico (solo texto)' },
+										{ value: 'imagen', label: 'Con imágenes' },
+									].map(({ value, label }) => (
+										<label key={value} className="flex items-center gap-2 cursor-pointer">
+											<input
+												type="radio"
+												name="tipo"
+												value={value}
+												checked={formData.tipo === value}
+												onChange={handleTipoChange}
+												className="accent-navy w-4 h-4"
+											/>
+											<span className="text-sm text-slate-700">{label}</span>
+										</label>
+									))}
+								</div>
 							</div>
 
 							{/* Sección de imágenes — solo visible si tipo === 'imagen' */}
