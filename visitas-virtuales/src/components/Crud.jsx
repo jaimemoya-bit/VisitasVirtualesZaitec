@@ -33,8 +33,8 @@ function Crud() {
 	const { logout } = useAuth();
 
 	const API_URL = import.meta.env.VITE_API_URL;
-	const UPDATE_PATH = `api/v1/centers/${selectedCenter?.id}/pois/${location.state?.id}`;
-	const CREATE_PATH = `api/v1/centers/${selectedCenter?.id}/pois`;
+	const UPDATE_PATH = `/api/v1/centers/${selectedCenter?.id}/pois/${location.state?.id}`;
+	const CREATE_PATH = `/api/v1/centers/${selectedCenter?.id}/pois`;
 
 	// Cargar datos al montar
 	useEffect(() => {
@@ -252,9 +252,9 @@ function Crud() {
 	const esTipoImagen = formData.tipo === 'imagen';
 
 	return (
-		<div className="flex flex-col items-center justify-center min-h-full w-full px-3 py-6 lg:px-12 md:px-10">
-			<div className="flex flex-col gap-4 w-full justify-center min-h-125 mb-50 max-w-2xl">
-				<div className="flex flex-col gap-4 w-full text-center lg:text-start">
+		<div className="flex flex-col items-center justify-center w-full min-h-full px-3 py-6 lg:px-12 md:px-10">
+			<div className="flex flex-col justify-center w-full max-w-2xl gap-4 min-h-125 mb-50">
+				<div className="flex flex-col w-full gap-4 text-center lg:text-start">
 					<PageHeader
 						title={
 							isEditing
@@ -265,16 +265,16 @@ function Crud() {
 						contextText={selectedCenter.name}
 					/>
 				</div>
-				<section className="flex flex-col gap-2 w-full shadow-sm rounded-2xl bg-white min-h-full">
+				<section className="flex flex-col w-full min-h-full gap-2 bg-white shadow-sm rounded-2xl">
 					<form
 						onSubmit={handleSubmit}
-						className="py-6 px-4 outline outline-slate-100 rounded-lg bg-slate-50 shadow-sm/8"
+						className="px-4 py-6 rounded-lg outline outline-slate-100 bg-slate-50 shadow-sm/8"
 					>
-						<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+						<div className="grid grid-cols-1 gap-4 md:grid-cols-2">
 
 							{/* Nombre */}
-							<div className="md:col-span-2 space-y-2">
-								<label className="block text-slate-600 text-sm font-medium mb-1">
+							<div className="space-y-2 md:col-span-2">
+								<label className="block mb-1 text-sm font-medium text-slate-600">
 									Nombre:
 								</label>
 								<Input
@@ -288,8 +288,8 @@ function Crud() {
 							</div>
 
 							{/* Descripción */}
-							<div className="md:col-span-2 space-y-2">
-								<label className="block text-slate-600 text-sm font-medium">
+							<div className="space-y-2 md:col-span-2">
+								<label className="block text-sm font-medium text-slate-600">
 									Descripción:
 								</label>
 								<textarea
@@ -304,8 +304,8 @@ function Crud() {
 							</div>
 
 							{/* Tipo de POI */}
-							<div className="md:col-span-2 space-y-2">
-								<label className="block text-slate-600 text-sm font-medium">
+							<div className="space-y-2 md:col-span-2">
+								<label className="block text-sm font-medium text-slate-600">
 									Tipo:
 								</label>
 								<div className="flex gap-6">
@@ -320,7 +320,7 @@ function Crud() {
 												value={value}
 												checked={formData.tipo === value}
 												onChange={handleTipoChange}
-												className="accent-navy w-4 h-4"
+												className="w-4 h-4 accent-navy"
 											/>
 											<span className="text-sm text-slate-700">{label}</span>
 										</label>
@@ -330,29 +330,29 @@ function Crud() {
 
 							{/* Sección de imágenes — solo visible si tipo === 'imagen' */}
 							{esTipoImagen && (
-								<div className="md:col-span-2 space-y-3">
-									<label className="block text-slate-600 text-sm font-medium">
+								<div className="space-y-3 md:col-span-2">
+									<label className="block text-sm font-medium text-slate-600">
 										Imágenes:
 									</label>
 
 									{/* Grid de imágenes subidas */}
 									{imagenesLocales.length > 0 && (
-										<div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+										<div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
 											{imagenesLocales.map((url, index) => (
 												<div
 													key={index}
-													className="relative group rounded-lg overflow-hidden border border-slate-200 aspect-video bg-slate-100"
+													className="relative overflow-hidden border rounded-lg group border-slate-200 aspect-video bg-slate-100"
 												>
 													<img
 														src={url}
 														alt={`Imagen ${index + 1}`}
-														className="w-full h-full object-cover"
+														className="object-cover w-full h-full"
 													/>
 													{/* Botón eliminar sobre la imagen */}
 													<button
 														type="button"
 														onClick={() => eliminarImagen(index)}
-														className="absolute top-1 right-1 p-1 bg-red-500 text-white rounded-md opacity-0 group-hover:opacity-100 transition-opacity"
+														className="absolute p-1 text-white transition-opacity bg-red-500 rounded-md opacity-0 top-1 right-1 group-hover:opacity-100"
 													>
 														<Trash2 size={14} />
 													</button>
@@ -397,7 +397,7 @@ function Crud() {
 							)}
 						</div>
 
-						<div className="mt-4 flex w-full justify-end gap-2">
+						<div className="flex justify-end w-full gap-2 mt-4">
 							<Button
 								type="button"
 								variant="secondary"

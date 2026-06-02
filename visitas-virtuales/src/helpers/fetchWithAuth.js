@@ -9,7 +9,7 @@ import {
 export async function fetchWithAuth(url, options = {}, logoutCallback) {
 	const refreshAccessToken = async () => {
 		try {
-			const refreshResponse = await fetch('/api/users/auth/refresh', {
+			const refreshResponse = await fetch('/api/v1/users/auth/refresh', {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
 				credentials: 'include',
