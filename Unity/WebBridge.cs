@@ -70,13 +70,14 @@ public class WebBridge : MonoBehaviour
 
     // EditorPois llama a este método cuando el admin confirma la posición de un POI
     // Envía las coordenadas normalizadas (0-1) + idCentro + userId + tipo al JS de la página
-    public static void EnviarCoordenadasPoi(float x, float y, string tipoPoi)
+    public static void EnviarCoordenadasPoi(float x, float y, string tipoPoi, int poiId = 0)
     {
         string json = $"{{" +
                       $"\"x\":{x.ToString("F4", System.Globalization.CultureInfo.InvariantCulture)}," +
                       $"\"y\":{y.ToString("F4", System.Globalization.CultureInfo.InvariantCulture)}," +
                       $"\"idCentro\":\"{IdCentroActual}\"," +
                       $"\"userId\":\"{UserIdActual}\"," +
+                      $"\"poiId\":{poiId}," +
                       $"\"tipo\":\"{tipoPoi}\"" +
                       $"}}";
 

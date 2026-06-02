@@ -48,6 +48,13 @@ public class JsonLoader : MonoBehaviour
             Debug.LogWarning($"[JsonLoader] WebBridge sin ID, usando valor del Inspector: {idCentro}");
         }
 
+        if (canvasEdicion == null)
+        {
+            canvasEdicion = GameObject.Find("Canvas_Admin");
+            if (canvasEdicion != null)
+                Debug.Log("[JsonLoader] Canvas_Admin encontrado automáticamente.");
+        }
+
         // Aplicar modo edición — activa o desactiva el CanvasEdicion según WebBridge
         WebBridge.AplicarModoEdicion(canvasEdicion);
 
