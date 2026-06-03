@@ -302,7 +302,7 @@ export default function CenterSelectionPage() {
 								</div>
 							) : (
 								<>
-									<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 w-full">
+									<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-12 w-fit">
 										{paginatedCenters.map((center) => {
 											const isActive = localSelectedCenter?.id === center.id;
 											return (
