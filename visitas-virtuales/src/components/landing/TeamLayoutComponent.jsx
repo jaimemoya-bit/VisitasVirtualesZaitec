@@ -23,24 +23,28 @@ function TeamLayoutComponent({
 				</p>
 			</div>
 			<div className="flex gap-4 p-1">
-				<a
-					href={linkedinUrl}
-					target="_blank"
-					rel="noopener noreferrer"
-					aria-label={`${nameDev} on LinkedIn`}
-					className="p-1 text-slate-500 hover:text-[#0A66C2] transition-colors cursor-pointer"
-				>
-					<TbBrandLinkedin size={20} />
-				</a>
-				<a
-					href={gitUrl}
-					target="_blank"
-					rel="noopener noreferrer"
-					aria-label={`${nameDev} on GitHub`}
-					className="p-1 text-slate-500 hover:text-[#181717] transition-colors cursor-pointer"
-				>
-					<TbBrandGithub size={20} />
-				</a>
+				{linkedinUrl && (
+					<a
+						href={linkedinUrl}
+						target="_blank"
+						rel="noopener noreferrer"
+						aria-label={`${nameDev} on LinkedIn`}
+						className="p-1 text-slate-500 hover:text-[#0A66C2] transition-colors cursor-pointer"
+					>
+						<TbBrandLinkedin size={20} />
+					</a>
+				)}
+				{gitUrl && (
+					<a
+						href={gitUrl}
+						target="_blank"
+						rel="noopener noreferrer"
+						aria-label={`${nameDev} on GitHub`}
+						className="p-1 text-slate-500 hover:text-[#181717] transition-colors cursor-pointer"
+					>
+						<TbBrandGithub size={20} />
+					</a>
+				)}
 			</div>
 		</div>
 	);
