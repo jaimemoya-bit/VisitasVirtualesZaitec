@@ -170,7 +170,7 @@ export default function UserProfileForm() {
 						}
 					/>
 				</div>
-				<div className="flex flex-col sm:flex-row w-full sm:justify-end gap-2 mt-6">
+				<div className="flex flex-col sm:flex-row w-full sm:justify-end gap-2 mt-8">
 					<Button type="button" variant="secondary" onClick={resetChanges}>
 						<RotateCcw className="w-5 h-5" strokeWidth={2} />
 						Descartar
