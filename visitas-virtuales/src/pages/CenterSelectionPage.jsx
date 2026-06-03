@@ -5,16 +5,15 @@ import { useCenter } from '@/hooks/useCenter.js';
 import { toast } from 'sonner';
 import {
 	ArrowLeft,
-	Settings,
-	Search,
 	ChevronLeft,
 	ChevronRight,
+	Settings,
+	Search,
 } from 'lucide-react';
 import Button from '@/components/Button.jsx';
 import UserDropdown from '../components/UserDropdown';
 import Input from '../components/Input.jsx';
-import Select from '../components/Select.jsx';
-import { useWindowSize } from '@/hooks/useWindowSize.js';
+import Select from '@/components/Select.jsx';
 
 export default function CenterSelectionPage() {
 	const navigate = useNavigate();
@@ -26,24 +25,34 @@ export default function CenterSelectionPage() {
 	};
 
 	const [searchParams, setSearchParams] = useSearchParams(initialValues);
-	const [searchQuery, setSearchQuery] = useState(
-		searchParams.get(initialValues.search) || '',
-	);
-	const [filterValues, setFilterValues] = useState();
+	const searchQuery = searchParams.get('search') || '';
+	const order = searchParams.get('order') || '';
+	const location = searchParams.get('location') || '';
 	const itemsPerPage = Number(searchParams.get('limit')) || 6;
 	const currentPage = Number(searchParams.get('page')) || 1;
-	const setCurrentPage = (pageOrUpdater) => {
-		const nextPage =
-			typeof pageOrUpdater === 'function'
-				? pageOrUpdater(currentPage)
-				: pageOrUpdater;
 
-		setSearchParams({
-			search: searchParams.get('search') || '',
-			limit: String(itemsPerPage),
-			page: String(nextPage),
+	const updateSearchParams = (updates) => {
+		const nextParams = new URLSearchParams(searchParams);
+
+		Object.entries(updates).forEach(([key, value]) => {
+			if (value === undefined || value === null || value === '') {
+				nextParams.delete(key);
+				return;
+			}
+
+			nextParams.set(key, String(value));
 		});
+
+		setSearchParams(nextParams);
 	};
+
+	const normalizeText = (text) =>
+		text
+			?.toString()
+			.normalize('NFD')
+			.replace(/\p{Diacritic}/gu, '')
+			.toLowerCase()
+			.trim() || '';
 
 	const { isAdmin, isTeacher } = useAuth();
 	const isStaff = isAdmin || isTeacher;
@@ -60,14 +69,46 @@ export default function CenterSelectionPage() {
 	const [localSelectedCenter, setLocalSelectedCenter] = useState(
 		selectedCenter || null,
 	);
-	const windowSize = useWindowSize();
 
 	const handleSearchChange = (value) => {
-		setSearchQuery(value);
-		setSearchParams({
+		updateSearchParams({
 			search: value,
 			page: 1,
-			limit: String(itemsPerPage),
+			limit: itemsPerPage,
+			order,
+			location,
+		});
+	};
+
+	const handleOrderChange = (e) => {
+		const value = e.target.value;
+		updateSearchParams({
+			search: searchQuery,
+			page: 1,
+			limit: itemsPerPage,
+			order: value,
+			location,
+		});
+	};
+
+	const handleLocationChange = (e) => {
+		const value = e.target.value;
+		updateSearchParams({
+			search: searchQuery,
+			page: 1,
+			limit: itemsPerPage,
+			order,
+			location: value,
+		});
+	};
+
+	const handlePageChange = (nextPage) => {
+		updateSearchParams({
+			search: searchQuery,
+			page: nextPage,
+			limit: itemsPerPage,
+			order,
+			location,
 		});
 	};
 
@@ -120,19 +161,54 @@ export default function CenterSelectionPage() {
 	};
 
 	// Filtrar y paginar centros
-	const filteredCenters = allCenters
-		? allCenters.filter((center) =>
-				center.name
-					.toLowerCase()
-					.includes(searchParams.get('search')?.toLowerCase() || ''),
-			)
-		: [];
+	const filteredCenters = (allCenters || [])
+		.filter((center) => {
+			if (!searchQuery) return true;
+
+			return center.name.toLowerCase().includes(searchQuery.toLowerCase());
+		})
+		.filter((center) => {
+			if (!location) return true;
+
+			const normalizedLocation = normalizeText(location);
+			return (
+				normalizeText(center.name).includes(normalizedLocation) ||
+				normalizeText(center.location).includes(normalizedLocation)
+			);
+		})
+		.sort((a, b) => {
+			if (order === 'name_asc') {
+				return a.name.localeCompare(b.name);
+			}
+
+			if (order === 'name_desc') {
+				return b.name.localeCompare(a.name);
+			}
+
+			return 0;
+		});
+
+	const locationOptions = [
+		{ id: '', name: 'Todas las ubicaciones' },
+		...Array.from(
+			new Map(
+				(allCenters || [])
+					.map((center) => center.location)
+					.filter(Boolean)
+					.map((locationName) => [normalizeText(locationName), locationName]),
+			).values(),
+		)
+			.sort((a, b) => a.localeCompare(b, 'es'))
+			.map((locationName) => ({ id: locationName, name: locationName })),
+	];
 
 	const totalPages = Math.ceil(filteredCenters.length / itemsPerPage);
 	const paginatedCenters = filteredCenters.slice(
 		(currentPage - 1) * itemsPerPage,
 		currentPage * itemsPerPage,
 	);
+	const canGoPrevious = currentPage > 1;
+	const canGoNext = currentPage < totalPages;
 
 	return (
 		<div className="min-h-screen bg-slate-50 flex flex-col gap-4">
@@ -174,21 +250,23 @@ export default function CenterSelectionPage() {
 
 					{/* Buscador de centros */}
 					<div className="mb-8">
-						<div className="relative w-full mx-auto flex flex-col justify-center items-center gap-4">
+						<div className="relative w-full mx-auto flex sm:flex-row flex-col justify-center items-center gap-4">
 							<Input
 								placeholder="Buscar centro por nombre..."
-								className="w-full lg:w-md"
+								className="w-full lg:max-w-sm"
 								value={searchQuery}
 								onChange={(e) => handleSearchChange(e.target.value)}
 							>
 								<Search size={18} />
 							</Input>
-							{/* TODO: Filtros de orden y ubicación */}
-							{/* <div className="flex w-full gap-4 justify-center">
+							{/* Filtros de orden y ubicación */}
+							<div className="flex w-full sm:w-auto gap-4 justify-center">
 								<Select
 									size="small"
 									variant="outline"
-									className="w-40! pr-1.25! pl-1.5! rounded-full!"
+									className="w-35!"
+									value={order}
+									onChange={handleOrderChange}
 									options={[
 										{ id: 'name_asc', name: 'Nombre A-Z' },
 										{ id: 'name_desc', name: 'Nombre Z-A' },
@@ -197,19 +275,16 @@ export default function CenterSelectionPage() {
 								<Select
 									size="small"
 									variant="outline"
-									className="w-40! pr-1.25! pl-1.5! rounded-full!"
-									options={[
-										{ id: 'madrid', name: 'Madrid' },
-										{ id: 'pacifico', name: 'Pacífico' },
-										{ id: 'jerez', name: 'Jerez' },
-										{ id: 'cordoba', name: 'Córdoba' },
-									]}
+									className="w-fit! pr-9"
+									value={location}
+									onChange={handleLocationChange}
+									options={locationOptions}
 								/>
-							</div> */}
+							</div>
 						</div>
 					</div>
 
-					{/* ... (Estados de carga y error se mantienen igual) ... */}
+					{/* Estados de carga y error */}
 					{isCentersLoading && (
 						<div className="flex justify-center items-center h-48">
 							<div className="animate-spin w-8 h-8 border-4 border-navy border-t-transparent rounded-full" />
@@ -218,7 +293,7 @@ export default function CenterSelectionPage() {
 
 					{/* Grid de tarjetas */}
 					{!isCentersLoading && !centersError && allCenters && (
-						<div className="flex w-full justify-between">
+						<div className="flex w-full flex-col items-center">
 							{filteredCenters.length === 0 ? (
 								<div className="text-center py-12">
 									<p className="text-slate-500 text-lg leading-relaxed">
@@ -226,19 +301,8 @@ export default function CenterSelectionPage() {
 									</p>
 								</div>
 							) : (
-								<div className="flex items-center w-full gap-12 justify-center">
-									{windowSize.width >= 1024 && (
-										<Button
-											size="normal"
-											variant="outline"
-											className=" pl-1.25! pr-1.5! rounded-full!"
-											onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-											disabled={currentPage === 1}
-										>
-											<ChevronLeft className="w-5 h-5" />
-										</Button>
-									)}
-									<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 w-full">
+								<>
+									<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-12 w-fit">
 										{paginatedCenters.map((center) => {
 											const isActive = localSelectedCenter?.id === center.id;
 											return (
@@ -321,46 +385,31 @@ export default function CenterSelectionPage() {
 
 									{/* Controles de paginación */}
 									{totalPages > 1 && (
-										<div className="flex items-center justify-center gap-4 mt-8">
+										<div className="mt-8 flex items-center justify-center gap-3">
 											<Button
-												variant="ghost"
+												variant="outline"
 												size="small"
-												onClick={() =>
-													setCurrentPage((p) => Math.max(1, p - 1))
-												}
-												disabled={currentPage === 1}
+												disabled={!canGoPrevious}
+												onClick={() => handlePageChange(currentPage - 1)}
 											>
-												<ChevronLeft size={18} />
+												<ChevronLeft size={16} />
 												<span>Anterior</span>
 											</Button>
-											<span className="text-sm text-slate-500">
+											<span className="min-w-28 text-center text-sm text-slate-500">
 												Página {currentPage} de {totalPages}
 											</span>
 											<Button
-												variant="ghost"
+												variant="outline"
 												size="small"
-												onClick={() =>
-													setCurrentPage((p) => Math.min(totalPages, p + 1))
-												}
-												disabled={currentPage === totalPages}
+												disabled={!canGoNext}
+												onClick={() => handlePageChange(currentPage + 1)}
 											>
 												<span>Siguiente</span>
-												<ChevronRight size={18} />
+												<ChevronRight size={16} />
 											</Button>
 										</div>
 									)}
-									{windowSize.width >= 1024 && (
-										<Button
-											size="normal"
-											variant="outline"
-											className=" pr-1.25! pl-1.5! rounded-full!"
-											onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-											disabled={currentPage === 1}
-										>
-											<ChevronRight className="w-5 h-5" />
-										</Button>
-									)}
-								</div>
+								</>
 							)}
 						</div>
 					)}
