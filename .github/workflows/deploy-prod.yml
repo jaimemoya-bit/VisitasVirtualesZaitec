@@ -1,7 +1,7 @@
 name: Deploy Prod - Coolify
 on:
   push:
-    branches: [Web_Zaitec]
+    branches: [main]
 
 jobs:
   deploy:
