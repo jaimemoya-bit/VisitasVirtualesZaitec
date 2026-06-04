@@ -25,6 +25,7 @@ dist-ssr
 
 # Secrets
 .env*
+!.env.template
 
 # Unity WebGL build output (IGNORE ENTIRE FOLDER)
 public/Build_Unity/
